@@ -3,17 +3,14 @@
  | Setup
  |--------------------------------------------------------------------------
  */
+
     //Controllers
     const Controllers = {
         v_1_0: {
-            
+            Point: require( _directory_base + '/app/v1.0/controllers/Point.js' ),
         }
     }
-    const Middleware = {
-        v_1_0: {
-            VerifyToken: require(_directory_base + '/app/v1.0/Http/Middleware/VerifyToken.js')
-        }
-    }
+    const VerifyToken =  require(_directory_base + '/app/utils/VerifyToken.js')
     module.exports = ( app ) => {
 
         /*
@@ -36,5 +33,7 @@
         | Versi 1.0
         |--------------------------------------------------------------------------
         */
+        
+        app.post('/api/v1.0/point', VerifyToken,  Controllers.v_1_0.Point.createOrUpdate);
       
     }
