@@ -73,12 +73,13 @@
 
     /*
     |--------------------------------------------------------------------------
-    // |--------------------------------------------------------------------------
+    | GET 6 user point per BA, PT, National
+    |--------------------------------------------------------------------------
     |*/
-    var response = [];
+    
         exports.getPoints = async (req, res) => {
             let authCode = req.auth.USER_AUTH_CODE;
-            // var response = [];
+            let response = [];
             let allUserPoints = await Models.Point.aggregate([
                 {
                     $group: {
@@ -108,9 +109,9 @@
             let BAUsers = getBAUsers(allUserPointsBA, currentUser);
 
             response.push({
+                BA: BAUsers,
                 PT: COMPUsers, 
-                NATIONAL: nationalUsers, 
-                BA: BAUsers
+                NATIONAL: nationalUsers
             });
 
             return res.send({
@@ -157,11 +158,11 @@
 
         function getSixUsers(users, index) {
             let sixUsers = [];
+            let rank = 0;
+            users.map(function (user) {
+                user.RANK = ++rank;
+            });
             if (index < 4) {
-                let rank = 0;
-                users.map(function (user) {
-                    user.RANK = ++rank;
-                });
                 for(let i = 0; i < 6; i++) {
                     if(users[i]) {
                         sixUsers.push(users[i]);
@@ -169,7 +170,7 @@
                         sixUsers.push(null);
                     }
                 }
-            } else if (index > 3) {
+            } else if (index > 3 && index < users.length - 1) {
                 for(let i = 0; i < 3; i++) {
                     if(users[i]) {
                         sixUsers.push(users[i]);
@@ -179,14 +180,28 @@
                 }
                 for(let i = index; i < index + 1; i++) {
                     if(users[--i]) {
-                        users[--i].RANK = --i; 
                         sixUsers.push(users[--i]);
                     } else {
                         sixUsers.push(null);
                     }
                     if(users[++i]) {
-                        users[++i].RANK = ++i;
                         sixUsers.push(users[++i]);
+                    } else {
+                        sixUsers.push(null);
+                    }
+                }
+            } else if (index === users.length - 1) {
+                for(let i = 0; i < 3; i++) {
+                    if(users[i]) {
+                        sixUsers.push(users[i]);
+                    } else {
+                        sixUsers.push(null);
+                    }
+                }
+
+                for(let i = index - 2; i <= index; i++) {
+                    if(users[i]) {
+                        sixUsers.push(users[i]);
                     } else {
                         sixUsers.push(null);
                     }
