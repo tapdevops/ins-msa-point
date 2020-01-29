@@ -2,7 +2,8 @@ const mongoose = require( 'mongoose' );
 require( 'mongoose-double' )(mongoose);
 
 const PointSchema = mongoose.Schema({
-    USER_AUTH_CODE: String,
+	USER_AUTH_CODE: String,
+	LOCATION_CODE: String,
     MONTH: {
 		type: Number,
 		get: v => Math.floor( v ),

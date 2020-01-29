@@ -40,7 +40,8 @@
                 autoCommit: false,
                 fetchMaxWaitMs: 1000,
                 fetchMaxBytes: 1024 * 1024,
-                fromOffset: true
+                fromOffset: true,
+                requestTimeout: 5000
             };
 
             const consumer = new Consumer(client, topics, options);
@@ -91,8 +92,17 @@
             let date = new Date();
             var d = new Date(date.getFullYear(), date.getMonth() + 1, 0);
             let dateNumber = parseInt(dateformat(d, 'yyyymmdd'));
-           
-            await Models.Point.updateOne(
+            // let count = await Models.Point.findOne({ USER_AUTH_CODE: authCode, MONTH: dateNumber}).count();
+            // console.log(count);
+            // if(count === 0) {
+            //     console.log("data kosong");
+            //     let set = new Models.Point({
+            //         USER_AUTH_CODE: authCode,
+            //          MONTH: dateNumber
+            //     });
+            //     await set.save();
+            // } 
+            await Models.Point.updateOne( 
                 { USER_AUTH_CODE: authCode, MONTH: dateNumber},
                 { $inc: { POINT: point } }
             );
