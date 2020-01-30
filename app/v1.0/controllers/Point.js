@@ -8,11 +8,13 @@
  */
     //Models
     const Models = {
-        Point: require(_directory_base + '/app/models/Point.js')
+        Point: require(_directory_base + '/app/models/Point.js'),
+        ViewUserAuth: require(_directory_base + '/app/models/ViewUserAuth.js')
     }
 
     //Node_modules
     const dateformat = require('dateformat');
+    const axios = require('axios');
 
     /*
     |--------------------------------------------------------------------------
@@ -104,14 +106,21 @@
             
             let currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
             
-            let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
-            let nationalUsers = getNationalUser(allUserPoints, currentUser);
             let BAUsers = getBAUsers(allUserPointsBA, currentUser);
+            let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
 
+            let BAIndex = getIndex(BAUsers, currentUser);
+            let COMPIndex = getIndex(COMPUsers, currentUser);
+            let nationalIndex = getIndex(allUserPoints, currentUser);
+
+            let sixBAUsers = await getSixUsers(BAUsers, BAIndex, req);
+            let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
+            let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
+            
             response.push({
-                BA: BAUsers,
-                PT: COMPUsers, 
-                NATIONAL: nationalUsers
+                BA: sixBAUsers,
+                PT: sixCOMPUsers, 
+                NATIONAL: sixNationalUsers
             });
 
             return res.send({
@@ -126,42 +135,61 @@
             let BAUsers = allUsers.filter(user => {
                 return user.LOCATION_CODE.match(BARegex);
             });
-            let index = BAUsers.findIndex(user => {
-                return user.USER_AUTH_CODE === currentUser[0].USER_AUTH_CODE
-            });
-           
-            let sixBAUsers = getSixUsers(BAUsers, index);
-            return sixBAUsers;
+            return BAUsers;
         }
-
+       
         function getCOMPUsers(allUsers, currentUser) {
             let COMPRegex = new RegExp(currentUser[0].LOCATION_CODE.substring(0, 2));
             let COMPUsers = allUsers.filter(user => {
                 return user.LOCATION_CODE.match(COMPRegex);
             });
-            let index = COMPUsers.findIndex(user => {
-                return user.USER_AUTH_CODE === currentUser[0].USER_AUTH_CODE
-            });
-            
-            let sixCOMPUsers = getSixUsers(COMPUsers, index);
-            return sixCOMPUsers;
+            return COMPUsers;
         }
 
-        function getNationalUser(allUsers, currentUser) {
-            let index = allUsers.findIndex(user => {
-                return user.USER_AUTH_CODE === currentUser[0].USER_AUTH_CODE
-            });
-            
-            let sixNationalUsers = getSixUsers(allUsers, index);
-            return sixNationalUsers;
-        }
-
-        function getSixUsers(users, index) {
+        async function getSixUsers(users, index, req) {
             let sixUsers = [];
             let rank = 0;
-            users.map(function (user) {
+            await Promise.all(users.map(async function (user) {
                 user.RANK = ++rank;
-            });
+                let viewUser = await Models.ViewUserAuth.findOne({
+                            USER_AUTH_CODE: user.USER_AUTH_CODE
+                        })
+                        .select({
+                            EMPLOYEE_NIK: 1,
+                            USER_ROLE: 1,
+                            LOCATION_CODE: 1,
+                            REF_ROLE: 1,
+                            HRIS_JOB: 1,
+                            PJS_JOB: 1,
+                            HRIS_FULLNAME: 1,
+                            PJS_FULLNAME: 1
+                        });
+                if (viewUser) {
+                    user.FULLNAME =  viewUser.HRIS_FULLNAME? viewUser.HRIS_FULLNAME: viewUser.PJS_FULLNAME
+                    user.EMPLOYEE_NIK = viewUser.EMPLOYEE_NIK;
+                    user.USER_ROLE = viewUser.USER_ROLE;
+                    user.REF_ROLE = viewUser.REF_ROLE;
+                    user.JOB = viewUser.HRIS_JOB ? viewUser.HRIS_JOB : viewUser.PJS_JOB;
+                }
+
+                let userAuthCode = 'default';
+                try{
+                    let imageProfileURL = config.app.url[config.app.env].microservice_images + "/api/v2.0/foto-profile";
+                    axios.defaults.headers.common['Authorization'] = req.headers.authorization;
+                    if (user.USER_AUTH_CODE) { 
+                        userAuthCode = user.USER_AUTH_CODE;
+                    }
+                    let result = await axios.post(imageProfileURL, {USER_AUTH_CODE: userAuthCode});
+                    if (result.data.data.URL) {
+                        user.IMAGE_URL = result.data.data.URL
+                    } else {
+                        user.IMAGE_URL = null;//config.app.url[config.app.env].microservice_images + '/files/images-profile/default.png';
+                    }
+                } catch (err) {
+                    console.log(err);
+                }
+            }));
+
             if (index < 4) {
                 for(let i = 0; i < 6; i++) {
                     if(users[i]) {
@@ -209,6 +237,15 @@
             }
             return sixUsers;
         }
+
+        function getIndex(users, currentUser) {
+            let index = users.findIndex(user => {
+                return user.USER_AUTH_CODE === currentUser[0].USER_AUTH_CODE
+            });
+            return index;
+        }
+       
+        
 
 
     
