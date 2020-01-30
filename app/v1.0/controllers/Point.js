@@ -54,10 +54,10 @@
             let locationCodes = ["4122O,4122P", "5121A", "5121A", "4221D", "4122K", "4122L", "4122M", "4122N", "4122O", "4122P,4122S"];
             let months = [20200131, 20200229, 20200330, 20200131, 20200229, 20200330, 20200131, 20200229, 20200330, 20200131];
 
-            for(let i = 0; i < 100000; i++) {
+            for(let i = 0; i < 10000; i++) {
                 let index = Math.floor(Math.random() * 10) + 0;
-                let user = users[index];
-                let locationCode = locationCodes[index];
+                let user = "0125";
+                let locationCode = "4123X";
                 let month = months[index];
 
                 let set = new Models.Point({
@@ -114,13 +114,13 @@
             let nationalIndex = getIndex(allUserPoints, currentUser);
 
             let sixBAUsers = await getSixUsers(BAUsers, BAIndex, req);
-            let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
-            let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
+            // let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
+            // let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
             
             response.push({
                 BA: sixBAUsers,
-                PT: sixCOMPUsers, 
-                NATIONAL: sixNationalUsers
+                // PT: sixCOMPUsers, 
+                // NATIONAL: sixNationalUsers
             });
 
             return res.send({

@@ -6,11 +6,15 @@
     const kafka = require( 'kafka-node' );
     const dateformat = require('dateformat');
 
-//Models
-// const KafkaErrorLog = require( _directory_base + '/app/v1.1/Http/Models/KafkaErrorLogModel.js' );
+    
+
+    //Models
     const Models = {
         Point: require( _directory_base + '/app/models/Point.js'),
-        KafkaPayload: require( _directory_base + '/app/models/KafkaPayload.js')
+        KafkaPayload: require( _directory_base + '/app/models/KafkaPayload.js'),
+        ViewUserAuth: require( _directory_base + '/app/models/ViewUserAuth.js')
+        // const KafkaErrorLog = require( _directory_base + '/app/v1.1/Http/Models/KafkaErrorLogModel.js' );
+
     }
 /*
 |--------------------------------------------------------------------------
@@ -75,11 +79,10 @@
         async save(message, offsetFetch) {
             try {
                 let data = JSON.parse(message.value);
-                console.log(data.INSUR);
                 let topic = message.topic;
                 if (topic === 'INS_MSA_FINDING_TR_FINDING') {
                     this.updateOffset(topic, offsetFetch);
-                    this.updatePoint(data.INSUR, 1);
+                    this.updatePoint(data, 1);
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
                     this.updateOffset(topic, offsetFetch);
                     this.updatePoint(data.INSUR, 1);
@@ -88,25 +91,21 @@
                 console.log(err);
             }
         }
-        async updatePoint(authCode, point) {
+        async updatePoint(data, point) {
             let date = new Date();
             var d = new Date(date.getFullYear(), date.getMonth() + 1, 0);
             let dateNumber = parseInt(dateformat(d, 'yyyymmdd'));
-            // let count = await Models.Point.findOne({ USER_AUTH_CODE: authCode, MONTH: dateNumber}).count();
-            // console.log(count);
-            // if(count === 0) {
-            //     console.log("data kosong");
-            //     let set = new Models.Point({
-            //         USER_AUTH_CODE: authCode,
-            //          MONTH: dateNumber
-            //     });
-            //     await set.save();
-            // } 
-            await Models.Point.updateOne( 
-                { USER_AUTH_CODE: authCode, MONTH: dateNumber},
-                { $inc: { POINT: point } }
-            );
             
+            let locationCode = await Models.ViewUserAuth.findOne({USER_AUTH_CODE: data.INSUR}).select({LOCATION_CODE: 1});
+            if (locationCode){
+                let set = new Models.Point({
+                    USER_AUTH_CODE: data.INSUR, 
+                    LOCATION_CODE: locationCode.LOCATION_CODE,
+                    MONTH: dateNumber,
+                    POINT: point
+                });
+                console.log(set);
+            }
         }
         async getListOffset() {
             try {
