@@ -250,14 +250,9 @@
                         sixUsers.push(null);
                     }
                 }
-                for(let i = index; i < index + 1; i++) {
-                    if(users[--i]) {
-                        sixUsers.push(users[--i]);
-                    } else {
-                        sixUsers.push(null);
-                    }
-                    if(users[++i]) {
-                        sixUsers.push(users[++i]);
+                for(let i = index - 1; i <= index + 1; i++) {
+                    if(users[i]) {
+                        sixUsers.push(users[i]);
                     } else {
                         sixUsers.push(null);
                     }
