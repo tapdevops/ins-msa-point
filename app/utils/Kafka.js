@@ -38,7 +38,8 @@
             let offsets = await this.getListOffset();
             const topics = [
                 { topic: 'INS_MSA_FINDING_TR_FINDING', partition: 0, offset: offsets['INS_MSA_FINDING_TR_FINDING'] },
-                { topic: 'INS_MSA_INS_TR_BLOCK_INSPECTION_H', partition: 0, offset: offsets['INS_MSA_INS_TR_BLOCK_INSPECTION_H'] }
+                { topic: 'INS_MSA_INS_TR_BLOCK_INSPECTION_H', partition: 0, offset: offsets['INS_MSA_INS_TR_BLOCK_INSPECTION_H'] },
+                { topic: 'INS_MSA_INS_TR_BLOCK_INSPECTION_D', partition: 0, offset: offsets['INS_MSA_INS_TR_BLOCK_INSPECTION_D'] }
             ];
             const options = {
                 autoCommit: false,
@@ -104,6 +105,9 @@
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
                     this.updateOffset(topic, offsetFetch);
                     this.updatePoint(data.INSUR, 1, dateNumber);
+                } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_D') {
+                    this.updatePoint(data.INSUR, 1, dateNumber);
+                    this.updateOffset(topic, offsetFetch);
                 }
             } catch (err) {
                 console.log(err);
