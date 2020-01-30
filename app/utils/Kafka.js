@@ -78,28 +78,42 @@
         }
         async save(message, offsetFetch) {
             try {
+                let date = new Date();
+                var d = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+                let dateNumber = parseInt(dateformat(d, 'yyyymmdd'));
                 let data = JSON.parse(message.value);
                 let topic = message.topic;
                 if (topic === 'INS_MSA_FINDING_TR_FINDING') {
+                    if (data.END_TIME != "") {
+                        let endTimeNumber = parseInt(data.END_TIME.substring(0, 8));
+                        let dueDate = parseInt(data.DUE_DATE.substring(0, 8));
+                        if (endTimeNumber <= dueDate) {
+                            this.updatePoint(data.UPTUR, 5, dateNumber);
+                        }
+                        let ratings = [1, 2, 3, 4, 5];
+                        for (let i = 0; i < ratings.length; i++) {
+                            if (data.RTGVL == ratings[i]) {
+                                this.updatePoint(data.UPTUR, ratings[i] - 2, dateNumber);
+                                break;
+                            }
+                        }
+                    } else {
+                        this.updatePoint(data.INSUR, 1, dateNumber);
+                    }
                     this.updateOffset(topic, offsetFetch);
-                    this.updatePoint(data, 1);
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
                     this.updateOffset(topic, offsetFetch);
-                    this.updatePoint(data.INSUR, 1);
+                    this.updatePoint(data.INSUR, 1, dateNumber);
                 }
             } catch (err) {
                 console.log(err);
             }
         }
-        async updatePoint(data, point) {
-            let date = new Date();
-            var d = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-            let dateNumber = parseInt(dateformat(d, 'yyyymmdd'));
-            
-            let locationCode = await Models.ViewUserAuth.findOne({USER_AUTH_CODE: data.INSUR}).select({LOCATION_CODE: 1});
+        async updatePoint(userAuthCode, point, dateNumber) {
+            let locationCode = await Models.ViewUserAuth.findOne({USER_AUTH_CODE: userAuthCode}).select({LOCATION_CODE: 1});
             if (locationCode){
                 let set = new Models.Point({
-                    USER_AUTH_CODE: data.INSUR, 
+                    USER_AUTH_CODE: userAuthCode, 
                     LOCATION_CODE: locationCode.LOCATION_CODE,
                     MONTH: dateNumber,
                     POINT: point
