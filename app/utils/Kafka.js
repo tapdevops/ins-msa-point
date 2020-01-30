@@ -104,7 +104,7 @@
                     MONTH: dateNumber,
                     POINT: point
                 });
-                console.log(set);
+                await set.save();
             }
         }
         async getListOffset() {
