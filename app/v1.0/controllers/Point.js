@@ -50,6 +50,8 @@
             //         data: []
             //     });
             // }
+
+            /*UNTUK INSERT DATA DUMMY */
             let users = ["0101", "0124", "0126", "0105", "0106", "0107", "0108", "0109", "0110", "0111"];
             let locationCodes = ["4122O,4122P", "5121A", "5121A", "4221D", "4122K", "4122L", "4122M", "4122N", "4122O", "4122P,4122S"];
             let months = [20200131, 20200229, 20200330, 20200131, 20200229, 20200330, 20200131, 20200229, 20200330, 20200131];
@@ -114,13 +116,13 @@
             let nationalIndex = getIndex(allUserPoints, currentUser);
 
             let sixBAUsers = await getSixUsers(BAUsers, BAIndex, req);
-            // let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
-            // let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
+            let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
+            let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
             
             response.push({
                 BA: sixBAUsers,
-                // PT: sixCOMPUsers, 
-                // NATIONAL: sixNationalUsers
+                PT: sixCOMPUsers, 
+                NATIONAL: sixNationalUsers
             });
 
             return res.send({
