@@ -75,6 +75,48 @@
             });
         }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET current user point 
+    |--------------------------------------------------------------------------
+    |*/
+
+        exports.myPoint = async (req, res) => {
+            let authCode = req.auth.USER_AUTH_CODE;
+            console.log(authCode);
+            let userPoint = await Models.Point.aggregate([
+                {
+                    $group: {
+                        _id: {
+                            USER_AUTH_CODE: "$USER_AUTH_CODE",
+                            LOCATION_CODE: "$LOCATION_CODE"
+                        },POINT: { $sum: "$POINT" }
+                    }
+                }, {
+                    $match: {
+                        "_id.USER_AUTH_CODE": authCode
+                    }
+                }
+            ]);
+            if (userPoint.length > 0) {
+                return res.send({
+                    status: true,
+                    message: 'success!',
+                    data: {
+                        POINT: userPoint[0].POINT
+                    }
+                });
+            }
+            return res.send({
+                status: true,
+                message: 'success!',
+                data: {
+                    POINT: 0
+                }
+            });
+        }
+
     /*
     |--------------------------------------------------------------------------
     | GET 6 user point per BA, PT, National
