@@ -84,7 +84,6 @@
 
         exports.myPoint = async (req, res) => {
             let authCode = req.auth.USER_AUTH_CODE;
-            console.log(authCode);
             let userPoint = await Models.Point.aggregate([
                 {
                     $group: {
@@ -123,7 +122,7 @@
     |--------------------------------------------------------------------------
     |*/
     
-        exports.getPoints = async (req, res) => {
+        exports.userPoints = async (req, res) => {
             let authCode = req.auth.USER_AUTH_CODE;
             let response = [];
             let allUserPoints = await Models.Point.aggregate([

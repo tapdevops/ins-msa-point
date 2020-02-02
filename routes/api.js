@@ -36,5 +36,5 @@
         
        // app.post('/api/v1.0/point', /*VerifyToken,*/  Controllers.v_1_0.Point.createOrUpdate);
         app.get('/api/v1.0/point/me', VerifyToken,  Controllers.v_1_0.Point.myPoint);
-        app.get('/api/v1.0/point/users', VerifyToken,  Controllers.v_1_0.Point.getPoints);
+        app.get('/api/v1.0/point/users', VerifyToken,  Controllers.v_1_0.Point.userPoints);
     }
