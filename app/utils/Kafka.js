@@ -82,17 +82,23 @@
         async save(message, offsetFetch) {
             try {
                 let date = new Date();
-                var d = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-                let dateNumber = parseInt(dateformat(d, 'yyyymmdd'));
+                var d = new Date(date.getFullYear(), date.getMonth() + 1, 0); //get tanggal terakhir untuk bulan sekarang
+                let dateNumber = parseInt(dateformat(d, 'yyyymmdd')); //misalnya 20203101
                 let data = JSON.parse(message.value);
                 let topic = message.topic;
                 if (topic === 'INS_MSA_FINDING_TR_FINDING') {
+
+                    //end_time = "" artinya data finding belum diselesaikan
                     if (data.END_TIME != "") {
                         let endTimeNumber = parseInt(data.END_TIME.substring(0, 8));
                         let dueDate = parseInt(data.DUE_DATE.substring(0, 8));
+                        
+                        //jika finding sudah diselesaikan dan tidak overdue, jika overdue maka user tidak mendapatkan tambahan point
                         if (endTimeNumber <= dueDate) {
                             this.updatePoint(data.UPTUR, 5, dateNumber);
                         }
+                        
+                        //memberi tambahan point sesuai rating yang diberikan
                         let ratings = [1, 2, 3, 4, 5];
                         for (let i = 0; i < ratings.length; i++) {
                             if (data.RTGVL == ratings[i]) {
@@ -100,7 +106,7 @@
                                 break;
                             }
                         }
-                    } else {
+                    } else { //jika data finding yang dikirim baru dibuat tambah point satu
                         this.updatePoint(data.INSUR, 1, dateNumber);
                     }
                     this.updateOffset(topic, offsetFetch);
@@ -121,6 +127,8 @@
                 console.log(err);
             }
         }
+
+        //tambahkan point user
         async updatePoint(userAuthCode, point, dateNumber) {
             let locationCode = await Models.ViewUserAuth.findOne({USER_AUTH_CODE: userAuthCode}).select({LOCATION_CODE: 1});
             if (locationCode){
@@ -133,6 +141,8 @@
                 await set.save();
             }
         }
+        
+        //untuk mendapatkan semua offset dari setiap topic
         async getListOffset() {
             try {
                 let data = await Models.KafkaPayload.find({});
@@ -145,6 +155,8 @@
                 return null;
             }
         }
+        
+        //update offset dari satu topic
         updateOffset(topic, offsetFetch) {
             try {
                 offsetFetch.fetch([
