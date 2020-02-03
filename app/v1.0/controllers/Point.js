@@ -143,41 +143,47 @@
                     }
                 }
             ]);
-            
-            allUserPoints.sort((a,b) => (b.POINT > a.POINT) ? 1 : ((a.POINT > b.POINT) ? -1 : 0));
-            //copy value dari allUserPoints ke 2 variabel lain agar tidak 
-            // conflict ketika function getBAUsers dan getCOMPUsers dipanggil
-
-            let allUserPointsBA = allUserPoints.map(object => ({ ...object }));
-            let allUserPointsCOMP = allUserPoints.map(object => ({ ...object}));
-            
-            let currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
-            
-            //dapatkan users BA, dan COMP dengan memfilter value allUserPoints menggunakan LOCATION_CODE dari setiap user
-            let BAUsers = getBAUsers(allUserPointsBA, currentUser);
-            let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
-
-            //get index current user (BA, COMP, National)
-            let BAIndex = getIndex(BAUsers, currentUser);
-            let COMPIndex = getIndex(COMPUsers, currentUser);
-            let nationalIndex = getIndex(allUserPoints, currentUser);
-
-            //dapatkan 6 user BA, COMP, dan National
-            let sixBAUsers = await getSixUsers(BAUsers, BAIndex, req);
-            let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
-            let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
-            
-            response.push({
-                BA: sixBAUsers,
-                PT: sixCOMPUsers, 
-                NATIONAL: sixNationalUsers
-            });
-
+            if (allUserPoints.length > 0) {
+                allUserPoints.sort((a,b) => (b.POINT > a.POINT) ? 1 : ((a.POINT > b.POINT) ? -1 : 0));
+                //copy value dari allUserPoints ke 2 variabel lain agar tidak 
+                // conflict ketika function getBAUsers dan getCOMPUsers dipanggil
+    
+                let allUserPointsBA = allUserPoints.map(object => ({ ...object }));
+                let allUserPointsCOMP = allUserPoints.map(object => ({ ...object}));
+                
+                let currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
+                
+                //dapatkan users BA, dan COMP dengan memfilter value allUserPoints menggunakan LOCATION_CODE dari setiap user
+                let BAUsers = getBAUsers(allUserPointsBA, currentUser);
+                let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
+    
+                //get index current user (BA, COMP, National)
+                let BAIndex = getIndex(BAUsers, currentUser);
+                let COMPIndex = getIndex(COMPUsers, currentUser);
+                let nationalIndex = getIndex(allUserPoints, currentUser);
+    
+                //dapatkan 6 user BA, COMP, dan National
+                let sixBAUsers = await getSixUsers(BAUsers, BAIndex, req);
+                let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
+                let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
+                
+                response.push({
+                    BA: sixBAUsers,
+                    PT: sixCOMPUsers, 
+                    NATIONAL: sixNationalUsers
+                });
+    
+                return res.send({
+                    status: true,
+                    message: 'success!',
+                    data: response
+                });
+            }
             return res.send({
                 status: true,
-                message: 'success!',
-                data: response
-            });
+                message: 'success',
+                data: []
+            })
         }
 
         function getBAUsers(allUsers, currentUser) {

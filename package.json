@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "async": "^3.1.1",
     "axios": "^0.19.2",
     "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
@@ -17,6 +18,7 @@
     "express": "^4.17.1",
     "jwt-decode": "^2.2.0",
     "kafka-node": "^5.0.0",
+    "moment-timezone": "^0.5.27",
     "mongoose": "^5.8.9",
     "mongoose-double": "0.0.1",
     "njwt": "^1.0.0"

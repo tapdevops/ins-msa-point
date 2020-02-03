@@ -5,7 +5,8 @@
 */
     const kafka = require( 'kafka-node' );
     const dateformat = require('dateformat');
-
+    const moment = require( 'moment-timezone');
+    const async = require( 'async');
     
 
     //Models
@@ -28,6 +29,9 @@
 |
 */
 	class Kafka {
+        constructor() { 
+            this.result = [];
+        }
 		async consumer () {
             const kafka = require('kafka-node');
             const Consumer = kafka.Consumer;
@@ -54,10 +58,12 @@
             const consumer = new Consumer(client, topics, options);
             let offset = new Offset(client);
             consumer.on( 'message', async ( message ) => {
+                // console.log(message.offset);
+                this.result.push(JSON.parse(message.value));
                 if (message) {
                     if (message.topic && message.value) {
                         try {
-                            this.save(message, offset);
+                            // this.save(message, offset);
                         } catch (err) {
                             console.log(err);
                         }
@@ -86,6 +92,7 @@
                 let dateNumber = parseInt(dateformat(d, 'yyyymmdd')); //misalnya 20203101
                 let data = JSON.parse(message.value);
                 let topic = message.topic;
+                let inspectionDate = parseInt(moment( new Date() ).tz( "Asia/Jakarta" ).format( "YYYYMMDDHHmmss" ));
                 if (topic === 'INS_MSA_FINDING_TR_FINDING') {
 
                     //end_time = "" artinya data finding belum diselesaikan
@@ -162,7 +169,6 @@
                 offsetFetch.fetch([
                     { topic: topic, partition: 0, time: Date.now(), maxNum: 1 }
                 ], function (err, data) {
-                    //get offset number
                     let lastOffsetNumber = data[topic]['0'][0];
                     Models.KafkaPayload.findOneAndUpdate({
                         TOPIC: topic
@@ -180,7 +186,12 @@
                  console.log(err);
             }
         }
-	}
+        printResults() {
+            console.log('ihsan');
+            console.log(this.result);
+        }
+    }
+    
 
 /*
 |--------------------------------------------------------------------------
