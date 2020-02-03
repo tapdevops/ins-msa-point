@@ -58,12 +58,11 @@
             const consumer = new Consumer(client, topics, options);
             let offset = new Offset(client);
             consumer.on( 'message', async ( message ) => {
-                // console.log(message.offset);
                 this.result.push(JSON.parse(message.value));
                 if (message) {
                     if (message.topic && message.value) {
                         try {
-                            // this.save(message, offset);
+                            this.save(message, offset);
                         } catch (err) {
                             console.log(err);
                         }
@@ -185,10 +184,6 @@
             } catch (err) {
                  console.log(err);
             }
-        }
-        printResults() {
-            console.log('ihsan');
-            console.log(this.result);
         }
     }
     
