@@ -125,6 +125,7 @@
         exports.userPoints = async (req, res) => {
             let authCode = req.auth.USER_AUTH_CODE;
             let response = [];
+            //dapatkan jumlah point setiap user
             let allUserPoints = await Models.Point.aggregate([
                 {
                     $group: {
@@ -144,18 +145,24 @@
             ]);
             
             allUserPoints.sort((a,b) => (b.POINT > a.POINT) ? 1 : ((a.POINT > b.POINT) ? -1 : 0));
+            //copy value dari allUserPoints ke 2 variabel lain agar tidak 
+            // conflict ketika function getBAUsers dan getCOMPUsers dipanggil
+
             let allUserPointsBA = allUserPoints.map(object => ({ ...object }));
             let allUserPointsCOMP = allUserPoints.map(object => ({ ...object}));
             
             let currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
             
+            //dapatkan users BA, dan COMP dengan memfilter value allUserPoints menggunakan LOCATION_CODE dari setiap user
             let BAUsers = getBAUsers(allUserPointsBA, currentUser);
             let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
 
+            //get index current user (BA, COMP, National)
             let BAIndex = getIndex(BAUsers, currentUser);
             let COMPIndex = getIndex(COMPUsers, currentUser);
             let nationalIndex = getIndex(allUserPoints, currentUser);
 
+            //dapatkan 6 user BA, COMP, dan National
             let sixBAUsers = await getSixUsers(BAUsers, BAIndex, req);
             let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
             let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
@@ -174,7 +181,7 @@
         }
 
         function getBAUsers(allUsers, currentUser) {
-            let BARegex = new RegExp(currentUser[0].LOCATION_CODE.substring(0, 4));
+            let BARegex = new RegExp(currentUser[0].LOCATION_CODE.substring(0, 4)); //contoh value 4122
             let BAUsers = allUsers.filter(user => {
                 return user.LOCATION_CODE.match(BARegex);
             });
@@ -182,7 +189,7 @@
         }
        
         function getCOMPUsers(allUsers, currentUser) {
-            let COMPRegex = new RegExp(currentUser[0].LOCATION_CODE.substring(0, 2));
+            let COMPRegex = new RegExp(currentUser[0].LOCATION_CODE.substring(0, 2)); //contoh value 41
             let COMPUsers = allUsers.filter(user => {
                 return user.LOCATION_CODE.match(COMPRegex);
             });
@@ -217,6 +224,7 @@
 
                 let userAuthCode = 'default';
                 try{
+                    //get url dari image profile setiap user
                     let imageProfileURL = config.app.url[config.app.env].microservice_images + "/api/v2.0/foto-profile";
                     axios.defaults.headers.common['Authorization'] = req.headers.authorization;
                     if (user.USER_AUTH_CODE) { 
@@ -232,7 +240,7 @@
                     console.log(err);
                 }
             }));
-
+            //jika current user berada di rank 1 - 4, langsung tampilkan users rank 1-6
             if (index < 4) {
                 for(let i = 0; i < 6; i++) {
                     if(users[i]) {
@@ -241,7 +249,7 @@
                         sixUsers.push(null);
                     }
                 }
-            } else if (index > 3 && index < users.length - 1) {
+            } else if (index > 3 && index < users.length - 1) { //jika current user rank >= 5, maka tampilkan satu user rank atas dan bawahnya
                 for(let i = 0; i < 3; i++) {
                     if(users[i]) {
                         sixUsers.push(users[i]);
@@ -256,7 +264,7 @@
                         sixUsers.push(null);
                     }
                 }
-            } else if (index === users.length - 1) {
+            } else if (index === users.length - 1) { //jika current user berada di rank terakhir maka tampilkan 2 user di atasnya  
                 for(let i = 0; i < 3; i++) {
                     if(users[i]) {
                         sixUsers.push(users[i]);

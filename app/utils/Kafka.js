@@ -162,6 +162,7 @@
                 offsetFetch.fetch([
                     { topic: topic, partition: 0, time: Date.now(), maxNum: 1 }
                 ], function (err, data) {
+                    //get offset number
                     let lastOffsetNumber = data[topic]['0'][0];
                     Models.KafkaPayload.findOneAndUpdate({
                         TOPIC: topic
