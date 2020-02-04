@@ -25,4 +25,4 @@ const PointSchema = mongoose.Schema({
 	}
 });
 
-module.exports = mongoose.model( 'Point', PointSchema, 'TR_POINT_INDEX' );
+module.exports = mongoose.model( 'Point', PointSchema, 'TR_POINT' );
