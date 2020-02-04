@@ -231,7 +231,16 @@
                             PJS_FULLNAME: 1
                         });
                 if (viewUser) {
-                    user.FULLNAME =  viewUser.HRIS_FULLNAME? viewUser.HRIS_FULLNAME: viewUser.PJS_FULLNAME
+                    let fullname = viewUser.HRIS_FULLNAME? viewUser.HRIS_FULLNAME: viewUser.PJS_FULLNAME
+                    if (fullname) {
+                        fullname = fullname.split(' ');
+                        if (fullname[1]) {
+                            fullname = fullname[0] + " " + fullname[1].substr(0, 1) + '.';
+                        } else {
+                            fullname = fullname[0];
+                        }
+                    }
+                    user.FULLNAME =  fullname;
                     user.EMPLOYEE_NIK = viewUser.EMPLOYEE_NIK;
                     user.USER_ROLE = viewUser.USER_ROLE;
                     user.REF_ROLE = viewUser.REF_ROLE;
