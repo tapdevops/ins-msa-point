@@ -132,15 +132,18 @@
                         _id: {
                             USER_AUTH_CODE: "$USER_AUTH_CODE",
                             MONTH: "$MONTH",
+                            LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE",
                             LOCATION_CODE: "$LOCATION_CODE"
-                        },POINT: { $sum: "$POINT" }
+                        },
+                        POINT: { $sum: "$POINT" },
                     }
                 }, {
                     $project: {
                         _id: 0,
                         USER_AUTH_CODE: "$_id.USER_AUTH_CODE",
                         LOCATION_CODE: "$_id.LOCATION_CODE",
-                        POINT: "$POINT"
+                        POINT: "$POINT",
+                        LAST_INSPECTION_DATE: "$_id.LAST_INSPECTION_DATE"
                     }
                 }
             ]);
@@ -153,10 +156,8 @@
                     }
                 } );
 
-                console.log(allUserPoints);
                 //copy value dari allUserPoints ke 2 variabel lain agar tidak 
                 // conflict ketika function getBAUsers dan getCOMPUsers dipanggil
-    
                 let allUserPointsBA = allUserPoints.map(object => ({ ...object }));
                 let allUserPointsCOMP = allUserPoints.map(object => ({ ...object}));
                 
