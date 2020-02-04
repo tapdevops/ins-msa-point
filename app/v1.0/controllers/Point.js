@@ -131,6 +131,7 @@
                     $group: {
                         _id: {
                             USER_AUTH_CODE: "$USER_AUTH_CODE",
+                            MONTH: "$MONTH",
                             LOCATION_CODE: "$LOCATION_CODE"
                         },POINT: { $sum: "$POINT" }
                     }
@@ -144,7 +145,15 @@
                 }
             ]);
             if (allUserPoints.length > 0) {
-                allUserPoints.sort((a,b) => (b.POINT > a.POINT) ? 1 : ((a.POINT > b.POINT) ? -1 : 0));
+                allUserPoints.sort((a,b) => {
+                    if (a.POINT == b.POINT) {
+                        return (b.LAST_INSPECTION_DATE > a.LAST_INSPECTION_DATE) ? 1 : ((a.LAST_INSPECTION_DATE > b.LAST_INSPECTION_DATE) ? -1 : 0);    
+                    } else {
+                        return (b.POINT > a.POINT) ? 1 : ((a.POINT > b.POINT) ? -1 : 0);
+                    }
+                } );
+
+                console.log(allUserPoints);
                 //copy value dari allUserPoints ke 2 variabel lain agar tidak 
                 // conflict ketika function getBAUsers dan getCOMPUsers dipanggil
     

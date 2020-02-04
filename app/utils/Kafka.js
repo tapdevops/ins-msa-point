@@ -29,9 +29,6 @@
 |
 */
 	class Kafka {
-        constructor() { 
-            this.result = [];
-        }
 		async consumer () {
             const kafka = require('kafka-node');
             const Consumer = kafka.Consumer;
@@ -58,7 +55,6 @@
             const consumer = new Consumer(client, topics, options);
             let offset = new Offset(client);
             consumer.on( 'message', async ( message ) => {
-                this.result.push(JSON.parse(message.value));
                 if (message) {
                     if (message.topic && message.value) {
                         try {
@@ -99,7 +95,8 @@
                         let endTimeNumber = parseInt(data.END_TIME.substring(0, 8));
                         let dueDate = parseInt(data.DUE_DATE.substring(0, 8));
                         
-                        //jika finding sudah diselesaikan dan tidak overdue, jika overdue maka user tidak mendapatkan tambahan point
+                        //jika finding sudah diselesaikan dan tidak overdue dapat 5 point ,
+                        // jika overdue maka user tidak mendapatkan tambahan point
                         if (endTimeNumber <= dueDate) {
                             this.updatePoint(data.UPTUR, 5, dateNumber);
                         }
@@ -115,18 +112,18 @@
                     } else { //jika data finding yang dikirim baru dibuat tambah point satu
                         this.updatePoint(data.INSUR, 1, dateNumber);
                     }
-                    this.updateOffset(topic, offsetFetch);
+                    // this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
                     this.updateOffset(topic, offsetFetch);
-                    this.updatePoint(data.INSUR, 1, dateNumber);
+                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_D') {
-                    this.updatePoint(data.INSUR, 1, dateNumber);
+                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
                     this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_INS_TR_INSPECTION_GENBA') {
-                    this.updatePoint(data.GNBUR, 1, dateNumber);
+                    this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate);
                     this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H') {
-                    this.updatePoint(data.INSUR, 1, dateNumber);
+                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
                     this.updateOffset(topic, offsetFetch);
                 }
             } catch (err) {
@@ -135,16 +132,48 @@
         }
 
         //tambahkan point user
-        async updatePoint(userAuthCode, point, dateNumber) {
+        async updatePoint(userAuthCode, point, dateNumber, inspectionDate = 0) {
             let locationCode = await Models.ViewUserAuth.findOne({USER_AUTH_CODE: userAuthCode}).select({LOCATION_CODE: 1});
             if (locationCode){
                 let set = new Models.Point({
                     USER_AUTH_CODE: userAuthCode, 
                     LOCATION_CODE: locationCode.LOCATION_CODE,
                     MONTH: dateNumber,
-                    POINT: point
+                    POINT: point,
+                    LAST_INSPECTION_DATE: inspectionDate
                 });
-                await set.save();
+                await set.save()
+                .then(data => {
+                    console.log('berhasil save');
+                })
+                .catch(err => {
+                    if (inspectionDate != 0) {
+                        Models.Point.updateOne({
+                            USER_AUTH_CODE: userAuthCode,
+                            MONTH: dateNumber,
+                        }, {
+                            LAST_INSPECTION_DATE: inspectionDate,
+                            $inc: {
+                                POINT: point
+                            }
+                        })
+                        .then(() => {
+                            // console.log('update point berhasil');
+                        });
+                    } else {
+                        Models.Point.updateOne({
+                            USER_AUTH_CODE: userAuthCode,
+                            MONTH: dateNumber,
+                        }, {
+                            $inc: {
+                                POINT: point
+                            }
+                        })
+                        .then(() => {
+                            // console.log('update point berhasil');
+                        });
+                    }
+                });
             }
         }
         
@@ -169,6 +198,8 @@
                     { topic: topic, partition: 0, time: Date.now(), maxNum: 1 }
                 ], function (err, data) {
                     let lastOffsetNumber = data[topic]['0'][0];
+                    console.log(topic);
+                    console.log(lastOffsetNumber);
                     Models.KafkaPayload.findOneAndUpdate({
                         TOPIC: topic
                     }, {
@@ -176,7 +207,7 @@
                     }, {
                         new: true
                     }).then(() => {
-                        console.log('sukses update offset');
+                        // console.log('sukses update offset');
                     }).catch(err => {
                         console.log(err);
                     });
