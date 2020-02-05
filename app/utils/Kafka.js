@@ -90,7 +90,7 @@
                 let inspectionDate = parseInt(moment( new Date() ).tz( "Asia/Jakarta" ).format( "YYYYMMDDHHmmss" ));
                 if (topic === 'INS_MSA_FINDING_TR_FINDING') {
 
-                    //end_time = "" artinya data finding belum diselesaikan
+                    //jika finding sudah selesai, maka lakukan perhitungan point
                     if (data.END_TIME != "") {
                         let endTimeNumber = parseInt(data.END_TIME.substring(0, 8));
                         let dueDate = parseInt(data.DUE_DATE.substring(0, 8));
@@ -101,17 +101,20 @@
                             this.updatePoint(data.UPTUR, 5, dateNumber);
                         }
                         
+                        //update point user yang membuat finding
+                        this.updatePoint(data.INSUR, 2, dateNumber);
+
                         //memberi tambahan point sesuai rating yang diberikan
-                        let ratings = [1, 2, 3, 4, 5];
-                        for (let i = 0; i < ratings.length; i++) {
-                            if (data.RTGVL == ratings[i]) {
-                                this.updatePoint(data.UPTUR, ratings[i] - 2, dateNumber);
-                                break;
+                        if (rating != 0) {
+                            let ratings = [1, 2, 3, 4, 5];
+                            for (let i = 0; i < ratings.length; i++) {
+                                if (data.RTGVL == ratings[i]) {
+                                    this.updatePoint(data.UPTUR, ratings[i] - 2, dateNumber);
+                                    break;
+                                }
                             }
                         }
-                    } else { //jika data finding yang dikirim baru dibuat tambah point satu
-                        this.updatePoint(data.INSUR, 1, dateNumber);
-                    }
+                    } 
                     this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
                     this.updateOffset(topic, offsetFetch);

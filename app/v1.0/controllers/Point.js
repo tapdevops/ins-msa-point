@@ -235,7 +235,11 @@
                     if (fullname) {
                         fullname = fullname.split(' ');
                         if (fullname[1]) {
-                            fullname = fullname[0] + " " + fullname[1].substr(0, 1) + '.';
+                            if (fullname[0].length <= 2) {
+                                fullname = fullname[0].substr(0, 1) + '.' + " " + fullname[1];
+                            } else {
+                                fullname = fullname[0] + " " + fullname[1].substr(0, 1) + '.';
+                            }
                         } else {
                             fullname = fullname[0];
                         }
