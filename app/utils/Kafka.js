@@ -69,7 +69,7 @@
 				console.log( 'error', err );
             });
             consumer.on('offsetOutOfRange', function (topic) {
-                topic.maxNum = 2;
+                topic.maxNum = 5;
                 offset.fetch([topic], function (err, offsets) {
                     if (err) {
                         return console.error(err);
@@ -105,7 +105,7 @@
                         this.updatePoint(data.INSUR, 2, dateNumber);
 
                         //memberi tambahan point sesuai rating yang diberikan
-                        if (rating != 0) {
+                        if (data.RTGVL != 0) {
                             let ratings = [1, 2, 3, 4, 5];
                             for (let i = 0; i < ratings.length; i++) {
                                 if (data.RTGVL == ratings[i]) {
@@ -198,7 +198,7 @@
         updateOffset(topic, offsetFetch) {
             try {
                 offsetFetch.fetch([
-                    { topic: topic, partition: 0, time: Date.now(), maxNum: 1 }
+                    { topic: topic, partition: 0, time: -1, maxNum: 1 }
                 ], function (err, data) {
                     let lastOffsetNumber = data[topic]['0'][0];
                     console.log(topic);
