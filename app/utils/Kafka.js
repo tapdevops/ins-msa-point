@@ -69,7 +69,7 @@
 				console.log( 'error', err );
             });
             consumer.on('offsetOutOfRange', function (topic) {
-                topic.maxNum = 5;
+                topic.maxNum = 2;
                 offset.fetch([topic], function (err, offsets) {
                     if (err) {
                         return console.error(err);
@@ -160,9 +160,6 @@
                                 POINT: point
                             }
                         })
-                        .then(() => {
-                            // console.log('update point berhasil');
-                        });
                     } else {
                         Models.Point.updateOne({
                             USER_AUTH_CODE: userAuthCode,
@@ -172,9 +169,6 @@
                                 POINT: point
                             }
                         })
-                        .then(() => {
-                            // console.log('update point berhasil');
-                        });
                     }
                 });
             }
