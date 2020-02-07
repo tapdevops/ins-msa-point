@@ -160,6 +160,9 @@
                                 POINT: point
                             }
                         })
+                        .then( () => {
+                            console.log('update point berhasil');
+                        })
                     } else {
                         Models.Point.updateOne({
                             USER_AUTH_CODE: userAuthCode,
@@ -168,6 +171,9 @@
                             $inc: {
                                 POINT: point
                             }
+                        })  
+                        .then( () => {
+                            console.log('update point berhasil');
                         })
                     }
                 });
