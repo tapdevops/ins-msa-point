@@ -149,6 +149,8 @@
             ]);
             if (allUserPoints.length > 0) {
                 allUserPoints.sort((a,b) => {
+                    
+                    //jika point user sama, bandingkan LAST_INSPECTION_DATE nya
                     if (a.POINT == b.POINT) {
                         return (b.LAST_INSPECTION_DATE > a.LAST_INSPECTION_DATE) ? 1 : ((a.LAST_INSPECTION_DATE > b.LAST_INSPECTION_DATE) ? -1 : 0);    
                     } else {
@@ -163,7 +165,7 @@
                 
                 let currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
                 
-                //dapatkan users BA, dan COMP dengan memfilter value allUserPoints menggunakan LOCATION_CODE dari setiap user
+                //dapatkan users BA, dan COMP dengan memfilter allUserPoints menggunakan LOCATION_CODE dari setiap user
                 let BAUsers = getBAUsers(allUserPointsBA, currentUser);
                 let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
     

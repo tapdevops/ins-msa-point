@@ -163,6 +163,9 @@
                         .then( () => {
                             console.log('update point berhasil');
                         })
+                        .catch(err => {
+                            console.log(err);
+                        });
                     } else {
                         Models.Point.updateOne({
                             USER_AUTH_CODE: userAuthCode,
@@ -175,6 +178,9 @@
                         .then( () => {
                             console.log('update point berhasil');
                         })
+                        .catch(err => {
+                            console.log(err);
+                        });
                     }
                 });
             }
