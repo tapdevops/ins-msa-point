@@ -91,7 +91,7 @@
                 if (topic === 'INS_MSA_FINDING_TR_FINDING') {
 
                     //jika finding sudah selesai, maka lakukan perhitungan point
-                    if (data.END_TIME != "") {
+                    if (data.END_TIME != "" && data.RTGVL == 0) {
                         let endTimeNumber = parseInt(data.END_TIME.substring(0, 8));
                         let dueDate = parseInt(data.DUE_DATE.substring(0, 8));
                         
@@ -105,13 +105,13 @@
                         this.updatePoint(data.INSUR, 2, dateNumber);
 
                         //memberi tambahan point sesuai rating yang diberikan
-                        if (data.RTGVL != 0) {
-                            let ratings = [1, 2, 3, 4, 5];
-                            for (let i = 0; i < ratings.length; i++) {
-                                if (data.RTGVL == ratings[i]) {
-                                    this.updatePoint(data.UPTUR, ratings[i] - 2, dateNumber);
-                                    break;
-                                }
+                        
+                    } else if (data.END_TIME != "" && data.RTGVL != 0) {
+                        let ratings = [1, 2, 3, 4];
+                        for (let i = 0; i < ratings.length; i++) {
+                            if (data.RTGVL == ratings[i]) {
+                                this.updatePoint(data.UPTUR, ratings[i] - 2, dateNumber);
+                                break;
                             }
                         }
                     } 
