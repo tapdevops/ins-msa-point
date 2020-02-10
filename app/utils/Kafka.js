@@ -119,9 +119,9 @@
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
                     this.updateOffset(topic, offsetFetch);
                     this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
-                } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_D') {
-                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
-                    this.updateOffset(topic, offsetFetch);
+                // } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_D') {
+                //     this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
+                //     this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_INS_TR_INSPECTION_GENBA') {
                     this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate);
                     this.updateOffset(topic, offsetFetch);
