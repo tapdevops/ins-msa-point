@@ -161,6 +161,7 @@
                             }
                         })
                         .then( () => {
+                            console.log('USER_AUTH_CODE: ', userAuthCode);
                             console.log('update point berhasil: ', point);
                         })
                         .catch(err => {
@@ -176,6 +177,7 @@
                             }
                         })  
                         .then( () => {
+                            console.log('USER_AUTH_CODE: ', userAuthCode);
                             console.log('update point berhasil: ', point);
                         })
                         .catch(err => {
