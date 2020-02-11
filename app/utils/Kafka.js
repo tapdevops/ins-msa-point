@@ -116,7 +116,7 @@
                             }
                         }
                     } 
-                    // this.updateOffset(topic, offsetFetch);
+                    this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
                     this.updateOffset(topic, offsetFetch);
                     this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
