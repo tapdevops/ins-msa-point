@@ -7,7 +7,7 @@
     const dateformat = require('dateformat');
     const moment = require( 'moment-timezone');
     const async = require( 'async');
-    
+    const dateFormat = require('dateformat');
 
     //Models
     const Models = {
@@ -179,6 +179,11 @@
                         .then( () => {
                             console.log('USER_AUTH_CODE: ', userAuthCode);
                             console.log('update point berhasil: ', point);
+                            
+                            var now = new Date();
+                            
+                            // Basic usage
+                            console.log(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
                         })
                         .catch(err => {
                             console.log(err);
