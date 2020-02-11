@@ -161,7 +161,7 @@
                             }
                         })
                         .then( () => {
-                            console.log('update point berhasil');
+                            console.log('update point berhasil: ', point);
                         })
                         .catch(err => {
                             console.log(err);
@@ -176,7 +176,7 @@
                             }
                         })  
                         .then( () => {
-                            console.log('update point berhasil');
+                            console.log('update point berhasil: ', point);
                         })
                         .catch(err => {
                             console.log(err);
