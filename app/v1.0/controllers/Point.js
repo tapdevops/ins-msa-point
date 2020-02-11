@@ -321,6 +321,28 @@
             });
             return index;
         }
+
+        exports.updatePoint = async (req, res) => {
+            Models.Point.updateOne({
+                USER_AUTH_CODE: req.body.USER_AUTH_CODE,
+                MONTH: 20200229,
+            }, {
+                LAST_INSPECTION_DATE: 20200211235959,
+                $inc: {
+                    POINT: parseInt(req.body.POINT)
+                }
+            })
+            .then( () => {
+                console.log('USER_AUTH_CODE: ', req.body.USER_AUTH_CODE);
+                console.log('update point berhasil: ', parseInt(req.body.POINT));
+                return res.send({
+                    status: true
+                })
+            })
+            .catch(err => {
+                console.log(err);
+            });
+        }
        
         
 
