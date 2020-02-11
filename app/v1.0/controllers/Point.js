@@ -335,6 +335,12 @@
             .then( () => {
                 console.log('USER_AUTH_CODE: ', req.body.USER_AUTH_CODE);
                 console.log('update point berhasil: ', parseInt(req.body.POINT));
+                var os = require('os');
+                var ifaces = os.userInfo([{
+                    options: 'utf-8'
+                }]);
+
+                console.log(ifaces)
                 return res.send({
                     status: true
                 })
