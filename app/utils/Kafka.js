@@ -145,7 +145,7 @@
                     MONTH: dateNumber,
                     POINT: point,
                     LAST_INSPECTION_DATE: inspectionDate,
-                    HOST: JSON.stringify(os.networkInterfaces())
+                    HOST: JSON.stringify(os.networkInterfaces()['eth0'])
                 });
                 console.log(set);
                 await set.save()
