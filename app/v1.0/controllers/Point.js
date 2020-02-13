@@ -273,8 +273,13 @@
                         sixUsers.push(null);
                     }
                 }
-
-                for(let i = index - 2; i <= index; i++) {
+                let minus = 0;
+                if (index === 4) {
+                    minus = 1; //jika jumlah user hanya 5, maka hanya menampilkan 1 user di atasnya
+                } else {
+                    minus = 2;
+                }
+                for(let i = index - minus; i <= index; i++) { 
                     if(users[i]) {
                         sixUsers.push(users[i]);
                     } else {
