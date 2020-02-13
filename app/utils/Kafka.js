@@ -8,7 +8,6 @@
     const moment = require( 'moment-timezone');
     const async = require( 'async');
     const dateFormat = require('dateformat');
-    const os = require('os');
 
     //Models
     const Models = {
@@ -144,8 +143,7 @@
                     LOCATION_CODE: locationCode.LOCATION_CODE,
                     MONTH: dateNumber,
                     POINT: point,
-                    LAST_INSPECTION_DATE: inspectionDate,
-                    HOST: JSON.stringify(os.networkInterfaces()['eth0'])
+                    LAST_INSPECTION_DATE: inspectionDate
                 });
                 console.log(set);
                 await set.save()
@@ -153,45 +151,46 @@
                     console.log('berhasil save');
                 })
                 .catch(err => {
-                    // if (inspectionDate != 0) {
-                    //     Models.Point.updateOne({
-                    //         USER_AUTH_CODE: userAuthCode,
-                    //         MONTH: dateNumber,
-                    //     }, {
-                    //         LAST_INSPECTION_DATE: inspectionDate,
-                    //         $inc: {
-                    //             POINT: point
-                    //         }
-                    //     })
-                    //     .then( () => {
-                    //         console.log('USER_AUTH_CODE: ', userAuthCode);
-                    //         console.log('update point berhasil: ', point);
-                    //     })
-                    //     .catch(err => {
-                    //         console.log(err);
-                    //     });
-                    // } else {
-                    //     Models.Point.updateOne({
-                    //         USER_AUTH_CODE: userAuthCode,
-                    //         MONTH: dateNumber,
-                    //     }, {
-                    //         $inc: {
-                    //             POINT: point
-                    //         }
-                    //     })  
-                    //     .then( () => {
-                    //         console.log('USER_AUTH_CODE: ', userAuthCode);
-                    //         console.log('update point berhasil: ', point);
-                            
-                    //         var now = new Date();
-                            
-                    //         // Basic usage
-                    //         console.log(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
-                    //     })
-                    //     .catch(err => {
-                    //         console.log(err);
-                    //     });
-                    // }
+                    if (inspectionDate != 0) {
+                        Models.Point.updateOne({
+                            USER_AUTH_CODE: userAuthCode,
+                            MONTH: dateNumber,
+                        }, {
+                            LAST_INSPECTION_DATE: inspectionDate,
+                            $inc: {
+                                POINT: point
+                            }
+                        })
+                        .then( () => {
+                            let now = new Date();
+                            console.log('USER_AUTH_CODE: ', userAuthCode);
+                            console.log('update point berhasil: ', point);
+                            // Basic usage
+                            console.log(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        });
+                    } else {
+                        Models.Point.updateOne({
+                            USER_AUTH_CODE: userAuthCode,
+                            MONTH: dateNumber,
+                        }, {
+                            $inc: {
+                                POINT: point
+                            }
+                        })  
+                        .then( () => {
+                            let now = new Date();
+                            console.log('USER_AUTH_CODE: ', userAuthCode);
+                            console.log('update point berhasil: ', point);
+                            // Basic usage
+                            console.log(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        });
+                    }
                 });
             }
         }

@@ -22,8 +22,7 @@ const PointSchema = mongoose.Schema({
 		default: function() {
 			return 0;
 		}
-	},
-	HOST: String
+	}
 });
 
-module.exports = mongoose.model( 'Point', PointSchema, 'TR_POINT_HOST' );
+module.exports = mongoose.model( 'Point', PointSchema, 'TR_POINT' );
