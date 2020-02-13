@@ -242,7 +242,7 @@
                 }
             }));
             //jika current user berada di rank 1 - 4, langsung tampilkan users rank 1-6
-            if (index < 4) {
+            if (index < 4 || users.length < 7) {
                 for(let i = 0; i < 6; i++) {
                     if(users[i]) {
                         sixUsers.push(users[i]);
@@ -273,13 +273,7 @@
                         sixUsers.push(null);
                     }
                 }
-                let minus = 0;
-                if (index === 4) {
-                    minus = 1; //jika jumlah user hanya 5, maka hanya menampilkan 1 user di atasnya
-                } else {
-                    minus = 2;
-                }
-                for(let i = index - minus; i <= index; i++) { 
+                for(let i = index - 2; i <= index; i++) { 
                     if(users[i]) {
                         sixUsers.push(users[i]);
                     } else {
