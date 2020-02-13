@@ -94,10 +94,10 @@
                         $group: {
                             _id: {
                                 USER_AUTH_CODE: "$USER_AUTH_CODE",
-                                LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE",
                                 LOCATION_CODE: "$LOCATION_CODE"
                             },
-                            POINT: { $sum: "$POINT" },
+                            POINT: { $sum: "$POINT" }, 
+                            LAST_INSPECTION_DATE: { $max: "$LAST_INSPECTION_DATE" } 
                         }
                     }, {
                         $project: {
@@ -105,7 +105,7 @@
                             USER_AUTH_CODE: "$_id.USER_AUTH_CODE",
                             LOCATION_CODE: "$_id.LOCATION_CODE",
                             POINT: "$POINT",
-                            LAST_INSPECTION_DATE: "$_id.LAST_INSPECTION_DATE"
+                            LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE"
                         }
                     }
                 ]);
