@@ -18,66 +18,6 @@
 
     /*
     |--------------------------------------------------------------------------
-    | Insert Default Point Per USER_AUTH_CODE dan MONTH
-    |--------------------------------------------------------------------------
-    |*/
-
-        exports.createOrUpdate = async (req, res) => {
-            // let authCode = req.auth.USER_AUTH_CODE;
-            // let date = new Date();
-            // let d = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-            // let dateNumber = parseInt(dateformat(d, 'yyyymmdd'));
-            // try {
-            //     let dataPointCount = await Models.Point.findOne({USER_AUTH_CODE: authCode, MONTH: dateNumber}).countDocuments();
-
-            //     if (dataPointCount == 0) {
-            //         let set = new Models.Point({
-            //             USER_AUTH_CODE: authCode,
-            //             MONTH: dateNumber,
-            //             POINT: 0
-            //         });
-            //         await set.save();
-            //     } 
-            //     return res.send({
-            //         status: true,
-            //         message: 'Sukses simpan',
-            //         data: []
-            //     });
-            // } catch (err) {
-            //     res.send({
-            //         status: false,
-            //         message: err.message,
-            //         data: []
-            //     });
-            // }
-
-            /*UNTUK INSERT DATA DUMMY */
-            let users = ["0101", "0124", "0126", "0105", "0106", "0107", "0108", "0109", "0110", "0111"];
-            let locationCodes = ["4122O,4122P", "5121A", "5121A", "4221D", "4122K", "4122L", "4122M", "4122N", "4122O", "4122P,4122S"];
-            let months = [20200131, 20200229, 20200330, 20200131, 20200229, 20200330, 20200131, 20200229, 20200330, 20200131];
-
-            for(let i = 0; i < 10000; i++) {
-                let index = Math.floor(Math.random() * 10) + 0;
-                let user = "0125";
-                let locationCode = "4123X";
-                let month = months[index];
-
-                let set = new Models.Point({
-                    USER_AUTH_CODE: user,
-                    LOCATION_CODE: locationCode,
-                    MONTH: month,
-                    POINT: 1
-                });
-                await set.save();
-            }
-            return res.send({
-                status: true
-            });
-        }
-
-
-    /*
-    |--------------------------------------------------------------------------
     | GET current user point 
     |--------------------------------------------------------------------------
     |*/
@@ -125,77 +65,105 @@
         exports.userPoints = async (req, res) => {
             let authCode = req.auth.USER_AUTH_CODE;
             let response = [];
+            let locationCode = await Models.ViewUserAuth.findOne({USER_AUTH_CODE: authCode}).select({LOCATION_CODE: 1});
+            let date = new Date();
+            var d = new Date(date.getFullYear(), date.getMonth() + 1, 0); //get tanggal terakhir untuk bulan sekarang
+            let dateNumber = parseInt(dateformat(d, 'yyyymmdd')); //misalnya 20203101
             //dapatkan jumlah point setiap user
-            let allUserPoints = await Models.Point.aggregate([
+            Models.Point.findOneAndUpdate(
+                { USER_AUTH_CODE: authCode },
                 {
-                    $group: {
-                        _id: {
-                            USER_AUTH_CODE: "$USER_AUTH_CODE",
-                            MONTH: "$MONTH",
-                            LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE",
-                            LOCATION_CODE: "$LOCATION_CODE"
-                        },
-                        POINT: { $sum: "$POINT" },
-                    }
-                }, {
-                    $project: {
-                        _id: 0,
-                        USER_AUTH_CODE: "$_id.USER_AUTH_CODE",
-                        LOCATION_CODE: "$_id.LOCATION_CODE",
-                        POINT: "$POINT",
-                        LAST_INSPECTION_DATE: "$_id.LAST_INSPECTION_DATE"
-                    }
+                  $setOnInsert: { 
+                      USER_AUTH_CODE: authCode,
+                      MONTH: dateNumber,
+                      LOCATION_CODE: locationCode.LOCATION_CODE,
+                      POINT: 0, 
+                      LAST_INSPECTION_DATE: 0
+                   },
+                },
+                {
+                  returnOriginal: false,
+                  upsert: true,
                 }
-            ]);
-            if (allUserPoints.length > 0) {
-                allUserPoints.sort((a,b) => {
-                    
-                    //jika point user sama, bandingkan LAST_INSPECTION_DATE nya
-                    if (a.POINT == b.POINT) {
-                        return (b.LAST_INSPECTION_DATE > a.LAST_INSPECTION_DATE) ? 1 : ((a.LAST_INSPECTION_DATE > b.LAST_INSPECTION_DATE) ? -1 : 0);    
-                    } else {
-                        return (b.POINT > a.POINT) ? 1 : ((a.POINT > b.POINT) ? -1 : 0);
+            ).then(async () => {
+                let allUserPoints = await Models.Point.aggregate([
+                    {
+                        $group: {
+                            _id: {
+                                USER_AUTH_CODE: "$USER_AUTH_CODE",
+                                MONTH: "$MONTH",
+                                LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE",
+                                LOCATION_CODE: "$LOCATION_CODE"
+                            },
+                            POINT: { $sum: "$POINT" },
+                        }
+                    }, {
+                        $project: {
+                            _id: 0,
+                            USER_AUTH_CODE: "$_id.USER_AUTH_CODE",
+                            LOCATION_CODE: "$_id.LOCATION_CODE",
+                            POINT: "$POINT",
+                            LAST_INSPECTION_DATE: "$_id.LAST_INSPECTION_DATE"
+                        }
                     }
-                } );
+                ]);
+                if (allUserPoints.length > 0) {
+                    allUserPoints.sort((a,b) => {
+                        
+                        //jika point user sama, bandingkan LAST_INSPECTION_DATE nya
+                        if (a.POINT == b.POINT) {
+                            return (b.LAST_INSPECTION_DATE > a.LAST_INSPECTION_DATE) ? 1 : ((a.LAST_INSPECTION_DATE > b.LAST_INSPECTION_DATE) ? -1 : 0);    
+                        } else {
+                            return (b.POINT > a.POINT) ? 1 : ((a.POINT > b.POINT) ? -1 : 0);
+                        }
+                    } );
 
-                //copy value dari allUserPoints ke 2 variabel lain agar tidak 
-                // conflict ketika function getBAUsers dan getCOMPUsers dipanggil
-                let allUserPointsBA = allUserPoints.map(object => ({ ...object }));
-                let allUserPointsCOMP = allUserPoints.map(object => ({ ...object}));
-                
-                let currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
-                
-                //dapatkan users BA, dan COMP dengan memfilter allUserPoints menggunakan LOCATION_CODE dari setiap user
-                let BAUsers = getBAUsers(allUserPointsBA, currentUser);
-                let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
-    
-                //get index current user (BA, COMP, National)
-                let BAIndex = getIndex(BAUsers, currentUser);
-                let COMPIndex = getIndex(COMPUsers, currentUser);
-                let nationalIndex = getIndex(allUserPoints, currentUser);
-    
-                //dapatkan 6 user BA, COMP, dan National
-                let sixBAUsers = await getSixUsers(BAUsers, BAIndex, req);
-                let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
-                let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
-                
-                response.push({
-                    BA: sixBAUsers,
-                    PT: sixCOMPUsers, 
-                    NATIONAL: sixNationalUsers
-                });
-    
+                    //copy value dari allUserPoints ke 2 variabel lain agar tidak 
+                    // conflict ketika function getBAUsers dan getCOMPUsers dipanggil
+                    let allUserPointsBA = allUserPoints.map(object => ({ ...object }));
+                    let allUserPointsCOMP = allUserPoints.map(object => ({ ...object}));
+                    
+                    let currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
+                    
+                    //dapatkan users BA, dan COMP dengan memfilter allUserPoints menggunakan LOCATION_CODE dari setiap user
+                    let BAUsers = getBAUsers(allUserPointsBA, currentUser);
+                    let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
+        
+                    //get index current user (BA, COMP, National)
+                    let BAIndex = getIndex(BAUsers, currentUser);
+                    let COMPIndex = getIndex(COMPUsers, currentUser);
+                    let nationalIndex = getIndex(allUserPoints, currentUser);
+        
+                    //dapatkan 6 user BA, COMP, dan National
+                    let sixBAUsers = await getSixUsers(BAUsers, BAIndex, req);
+                    let sixCOMPUsers = await getSixUsers(COMPUsers, COMPIndex, req);
+                    let sixNationalUsers = await getSixUsers(allUserPoints, nationalIndex, req);
+                    
+                    response.push({
+                        BA: sixBAUsers,
+                        PT: sixCOMPUsers, 
+                        NATIONAL: sixNationalUsers
+                    });
+        
+                    return res.send({
+                        status: true,
+                        message: 'success!',
+                        data: response
+                    });
+                }
                 return res.send({
                     status: true,
-                    message: 'success!',
-                    data: response
-                });
-            }
-            return res.send({
-                status: true,
-                message: 'success',
-                data: []
+                    message: 'success',
+                    data: []
+                })
             })
+            .catch(err => {
+                return res.send({
+                    status: false,
+                    message: err.message,
+                    data: []
+                });
+            });
         }
 
         function getBAUsers(allUsers, currentUser) {
