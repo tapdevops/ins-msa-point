@@ -69,7 +69,9 @@
             let date = new Date();
             var d = new Date(date.getFullYear(), date.getMonth() + 1, 0); //get tanggal terakhir untuk bulan sekarang
             let dateNumber = parseInt(dateformat(d, 'yyyymmdd')); //misalnya 20203101
-            //dapatkan jumlah point setiap user
+            
+            //Periksa current user di TR_POINT, jika tidak ada 
+            //insert data current user dengan POINT 0
             Models.Point.findOneAndUpdate(
                 { USER_AUTH_CODE: authCode },
                 {
@@ -86,12 +88,12 @@
                   upsert: true,
                 }
             ).then(async () => {
+                //dapatkan jumlah point setiap user
                 let allUserPoints = await Models.Point.aggregate([
                     {
                         $group: {
                             _id: {
                                 USER_AUTH_CODE: "$USER_AUTH_CODE",
-                                MONTH: "$MONTH",
                                 LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE",
                                 LOCATION_CODE: "$LOCATION_CODE"
                             },
