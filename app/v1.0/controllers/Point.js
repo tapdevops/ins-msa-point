@@ -241,7 +241,7 @@
                     console.log(err);
                 }
             }));
-            //jika current user berada di rank 1 - 4, langsung tampilkan users rank 1-6
+            //jika current user berada di rank 1 - 4 atau jika jumlah user < 7, maka langsung tampilkan users rank 1-6
             if (index < 4 || users.length < 7) {
                 for(let i = 0; i < 6; i++) {
                     if(users[i]) {
@@ -250,7 +250,7 @@
                         sixUsers.push(null);
                     }
                 }
-            } else if (index > 3 && index < users.length - 1) { //jika current user rank >= 5, maka tampilkan satu user rank atas dan bawahnya
+            } else if (index > 3 && index < users.length - 1) { //jika current user rank > 4, maka tampilkan satu user rank atas dan bawahnya
                 for(let i = 0; i < 3; i++) {
                     if(users[i]) {
                         sixUsers.push(users[i]);
