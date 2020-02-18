@@ -34,13 +34,13 @@
 		*/
 			kafka: {
 				dev: {
-					server_host: '149.129.221.137:9092'
+					server_host: 'kafkadev.tap-agri.com:9092'
 				},
 				qa: {
-					server_host: '149.129.221.137:9092'
+					server_host: 'kafkadev.tap-agri.com:9092'
 				},
 				prod: {
-					server_host: '149.129.252.13:9092'
+					server_host: 'kafka.tap-agri.com:9092'
 				}
 			},
 
