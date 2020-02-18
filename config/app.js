@@ -34,13 +34,13 @@
 		*/
 			kafka: {
 				dev: {
-					server_host: '149.129.221.137:9092'
+					server_host: 'kafkadev.tap-agri.com:9092'
 				},
 				qa: {
-					server_host: '149.129.221.137:9092'
+					server_host: 'kafkadev.tap-agri.com:9092'
 				},
 				prod: {
-					server_host: '149.129.252.13:9092'
+					server_host: 'kafka.tap-agri.com:9092'
 				}
 			},
 
@@ -78,7 +78,7 @@
 					microservice_finding: 'http://app.tap-agri.com/mobileinspection/ins-msa-finding',
 					microservice_hectare_statement: 'http://app.tap-agri.com/mobileinspection/ins-msa-hectarestatement',
 					microservice_inspection: 'http://app.tap-agri.com/mobileinspection/ins-msa-inspection',
-					microservice_images: 'http://149.129.245.230:3012',
+					microservice_images: 'http://image.tap-agri.com:3012',
 				}
 			},
 		
