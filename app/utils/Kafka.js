@@ -6,16 +6,12 @@
     const kafka = require( 'kafka-node' );
     const dateformat = require('dateformat');
     const moment = require( 'moment-timezone');
-    const async = require( 'async');
-    const dateFormat = require('dateformat');
 
     //Models
     const Models = {
         Point: require( _directory_base + '/app/models/Point.js'),
         KafkaPayload: require( _directory_base + '/app/models/KafkaPayload.js'),
         ViewUserAuth: require( _directory_base + '/app/models/ViewUserAuth.js')
-        // const KafkaErrorLog = require( _directory_base + '/app/v1.1/Http/Models/KafkaErrorLogModel.js' );
-
     }
 /*
 |--------------------------------------------------------------------------
@@ -30,7 +26,6 @@
 */
 	class Kafka {
 		async consumer () {
-            const kafka = require('kafka-node');
             const Consumer = kafka.Consumer;
             const Offset = kafka.Offset;
             const Client = kafka.KafkaClient;
@@ -166,7 +161,7 @@
                             console.log('USER_AUTH_CODE: ', userAuthCode);
                             console.log('update point berhasil: ', point);
                             // Basic usage
-                            console.log(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
+                            console.log(dateformat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
                         })
                         .catch(err => {
                             console.log(err);
@@ -185,7 +180,7 @@
                             console.log('USER_AUTH_CODE: ', userAuthCode);
                             console.log('update point berhasil: ', point);
                             // Basic usage
-                            console.log(dateFormat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
+                            console.log(dateformat(now, "dddd, mmmm dS, yyyy, h:MM:ss TT"));
                         })
                         .catch(err => {
                             console.log(err);
