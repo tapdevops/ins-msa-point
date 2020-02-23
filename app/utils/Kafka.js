@@ -40,7 +40,7 @@
             const topics = [
                 { topic: 'INS_MSA_FINDING_TR_FINDING', partition: 0, offset: offsets['INS_MSA_FINDING_TR_FINDING'] },
                 { topic: 'INS_MSA_INS_TR_BLOCK_INSPECTION_H', partition: 0, offset: offsets['INS_MSA_INS_TR_BLOCK_INSPECTION_H'] },
-                { topic: 'INS_MSA_INS_TR_BLOCK_INSPECTION_D', partition: 0, offset: offsets['INS_MSA_INS_TR_BLOCK_INSPECTION_D'] },
+                // { topic: 'INS_MSA_INS_TR_BLOCK_INSPECTION_D', partition: 0, offset: offsets['INS_MSA_INS_TR_BLOCK_INSPECTION_D'] },
                 { topic: 'INS_MSA_INS_TR_INSPECTION_GENBA', partition: 0, offset: offsets['INS_MSA_INS_TR_INSPECTION_GENBA'] },
                 { topic: 'INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H', partition: 0, offset: offsets['INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H'] }
             ];
@@ -96,7 +96,7 @@
                         let dueDate = parseInt(data.DUE_DATE.substring(0, 8));
                         
                         //jika finding sudah diselesaikan dan tidak overdue dapat 5 point ,
-                        // jika overdue maka user tidak mendapatkan tambahan point
+                        // jika overdue maka user yang menyelasaikan finding tidak mendapatkan tambahan point
                         if (endTimeNumber <= dueDate) {
                             this.updatePoint(data.UPTUR, 5, dateNumber);
                         }
