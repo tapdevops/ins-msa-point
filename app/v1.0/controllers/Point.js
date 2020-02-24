@@ -89,6 +89,7 @@
                 }
             ).then(async () => {
                 //dapatkan jumlah point setiap user
+                
                 let allUserPoints = await Models.Point.aggregate([
                     {
                         $group: {
@@ -100,16 +101,30 @@
                             LAST_INSPECTION_DATE: { $max: "$LAST_INSPECTION_DATE" } 
                         }
                     }, {
+                        //join ke table view user auth untuk mendapatkan user_role
+                        $lookup: {
+                            from: "VIEW_USER_AUTH",
+                            localField: "_id.USER_AUTH_CODE",
+                            foreignField: "USER_AUTH_CODE",
+                            as: "viewUserAuth"
+                        }
+                    }, 
+                    {
+                        $unwind: "$viewUserAuth"
+                    }, 
+                    {
                         $project: {
                             _id: 0,
                             USER_AUTH_CODE: "$_id.USER_AUTH_CODE",
                             LOCATION_CODE: "$_id.LOCATION_CODE",
                             POINT: "$POINT",
-                            LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE"
+                            LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE",
+                            USER_ROLE: "$viewUserAuth.USER_ROLE"
                         }
                     }
-                ]);
+                ])
                 if (allUserPoints.length > 0) {
+                    allUserPoints = allUserPoints.filter(user => user.USER_ROLE == 'ASISTEN_LAPANGAN');
                     allUserPoints.sort((a,b) => {
                         
                         //jika point user sama, bandingkan LAST_INSPECTION_DATE nya
@@ -125,8 +140,14 @@
                     let allUserPointsBA = allUserPoints.map(object => ({ ...object }));
                     let allUserPointsCOMP = allUserPoints.map(object => ({ ...object}));
                     
-                    let currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
-                    
+                    let currentUser = [];
+                    //jika current user bukan ASISTEN_LAPANGAN, maka current user menjadi user ke-1 
+                    //maka user yang ditampilkan di leader board adalah 6 user teratas
+                    if (req.auth.USER_ROLE != 'ASISTEN_LAPANGAN') {
+                        currentUser.push(allUserPoints[0]);
+                    } else {
+                        currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
+                    }
                     //dapatkan users BA, dan COMP dengan memfilter allUserPoints menggunakan LOCATION_CODE dari setiap user
                     let BAUsers = getBAUsers(allUserPointsBA, currentUser);
                     let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
@@ -160,6 +181,7 @@
                 })
             })
             .catch(err => {
+                console.log(err)
                 return res.send({
                     status: false,
                     message: err.message,

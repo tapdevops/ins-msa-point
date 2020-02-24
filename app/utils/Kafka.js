@@ -83,48 +83,44 @@
                 let data = JSON.parse(message.value);
                 let topic = message.topic;
                 let inspectionDate = parseInt(moment( new Date() ).tz( "Asia/Jakarta" ).format( "YYYYMMDDHHmmss" ));
-
-                let userRole = await Models.ViewUserAuth.findOne({USER_AUTH_CODE: data.INSUR ? data.INSUR : data.GNBUR}).select({USER_ROLE: 1});
                 
-                if (userRole.USER_ROLE == 'ASISTEN_LAPANGAN') {
-                    if (topic === 'INS_MSA_FINDING_TR_FINDING') {
-    
-                        //jika finding sudah selesai, maka lakukan perhitungan point
-                        if (data.END_TIME != "" && data.RTGVL == 0) {
-                            let endTimeNumber = parseInt(data.END_TIME.substring(0, 8));
-                            let dueDate = parseInt(data.DUE_DATE.substring(0, 8));
-                            
-                            //jika finding sudah diselesaikan dan tidak overdue dapat 5 point ,
-                            // jika overdue maka user yang menyelasaikan finding tidak mendapatkan tambahan point
-                            if (endTimeNumber <= dueDate) {
-                                this.updatePoint(data.UPTUR, 5, dateNumber);
+                if (topic === 'INS_MSA_FINDING_TR_FINDING') {
+
+                    //jika finding sudah selesai, maka lakukan perhitungan point
+                    if (data.END_TIME != "" && data.RTGVL == 0) {
+                        let endTimeNumber = parseInt(data.END_TIME.substring(0, 8));
+                        let dueDate = parseInt(data.DUE_DATE.substring(0, 8));
+                        
+                        //jika finding sudah diselesaikan dan tidak overdue dapat 5 point ,
+                        // jika overdue maka user yang menyelasaikan finding tidak mendapatkan tambahan point
+                        if (endTimeNumber <= dueDate) {
+                            this.updatePoint(data.UPTUR, 5, dateNumber);
+                        }
+                        
+                        //update point user yang membuat finding
+                        this.updatePoint(data.INSUR, 2, dateNumber);
+
+                        //memberi tambahan point sesuai rating yang diberikan
+                        
+                    } else if (data.END_TIME != "" && data.RTGVL != 0) {
+                        let ratings = [1, 2, 3, 4];
+                        for (let i = 0; i < ratings.length; i++) {
+                            if (data.RTGVL == ratings[i]) {
+                                this.updatePoint(data.UPTUR, ratings[i] - 2, dateNumber);
+                                break;
                             }
-                            
-                            //update point user yang membuat finding
-                            this.updatePoint(data.INSUR, 2, dateNumber);
-    
-                            //memberi tambahan point sesuai rating yang diberikan
-                            
-                        } else if (data.END_TIME != "" && data.RTGVL != 0) {
-                            let ratings = [1, 2, 3, 4];
-                            for (let i = 0; i < ratings.length; i++) {
-                                if (data.RTGVL == ratings[i]) {
-                                    this.updatePoint(data.UPTUR, ratings[i] - 2, dateNumber);
-                                    break;
-                                }
-                            }
-                        } 
-                        this.updateOffset(topic, offsetFetch);
-                    } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
-                        this.updateOffset(topic, offsetFetch);
-                        this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
-                    } else if (topic === 'INS_MSA_INS_TR_INSPECTION_GENBA') {
-                        this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate);
-                        this.updateOffset(topic, offsetFetch);
-                    } else if (topic === 'INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H') {
-                        this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
-                        this.updateOffset(topic, offsetFetch);
-                    }
+                        }
+                    } 
+                    this.updateOffset(topic, offsetFetch);
+                } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
+                    this.updateOffset(topic, offsetFetch);
+                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
+                } else if (topic === 'INS_MSA_INS_TR_INSPECTION_GENBA') {
+                    this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate);
+                    this.updateOffset(topic, offsetFetch);
+                } else if (topic === 'INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H') {
+                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
+                    this.updateOffset(topic, offsetFetch);
                 }
             } catch (err) {
                 console.log(err);
