@@ -11,7 +11,7 @@
 		|--------------------------------------------------------------------------
 		*/
 			name: 'Microservice Point',
-			env: 'qa', // prod, qa, dev,
+			env: 'prod', // prod, qa, dev,
 			port: {
 				dev: process.env.PORT || 4016,
 				qa: process.env.PORT || 5016,
