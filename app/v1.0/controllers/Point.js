@@ -150,7 +150,6 @@
                     //dapatkan users BA, dan COMP dengan memfilter allUserPoints menggunakan LOCATION_CODE dari setiap user
                     let BAUsers = getBAUsers(allUserPointsBA, currentUser);
                     let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
-        
                     //get index current user (BA, COMP, National)
                     let BAIndex = getIndex(BAUsers, currentUser);
                     let COMPIndex = getIndex(COMPUsers, currentUser);
@@ -198,10 +197,18 @@
         }
        
         function getCOMPUsers(allUsers, currentUser) {
-            let COMPRegex = new RegExp(currentUser[0].LOCATION_CODE.substring(0, 2)); //contoh value 41
+            let currentUserLocationCode = currentUser[0].LOCATION_CODE.substring(0, 2); //contoh value 41
             let COMPUsers = allUsers.filter(user => {
-                return user.LOCATION_CODE.match(COMPRegex);
+                let splittedLocationCode = user.LOCATION_CODE.split(',')
+                // filterCOMPUser(splittedLocationCode, currentUserLocationCode)
+                for(let i = 0; i < splittedLocationCode.length; i++) {
+                    let compCode = splittedLocationCode[i].substring(0, 2)
+                    if (compCode == currentUserLocationCode) {
+                        return true
+                    }
+                }
             });
+            console.log(COMPUsers)
             return COMPUsers;
         }
 
