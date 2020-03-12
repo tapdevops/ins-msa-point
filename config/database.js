@@ -10,7 +10,7 @@
  */
 module.exports = {
     dev: {
-        url: 'mongodb://s_auth:s_auth@dbappdev.tap-agri.net:4848/s_auth?authSource=s_auth',
+        url: 'mongodb://s_auth:s_auth@dbappdev.tap-agri.com:4848/s_auth?authSource=s_auth',
         ssl: false
     },
     qa: {
