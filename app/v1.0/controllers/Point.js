@@ -208,7 +208,6 @@
                     }
                 }
             });
-            console.log(COMPUsers)
             return COMPUsers;
         }
 
