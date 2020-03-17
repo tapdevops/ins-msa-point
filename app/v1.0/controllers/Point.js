@@ -28,8 +28,7 @@
                 {
                     $group: {
                         _id: {
-                            USER_AUTH_CODE: "$USER_AUTH_CODE",
-                            LOCATION_CODE: "$LOCATION_CODE"
+                            USER_AUTH_CODE: "$USER_AUTH_CODE"
                         },POINT: { $sum: "$POINT" }
                     }
                 }, {
