@@ -39,7 +39,10 @@
         console.log( "\tService \t: " + config.app.name + " (" + config.app.env + ")" );
 		console.log( "\tPort \t\t: " + config.app.port[config.app.env] );
     });
-
+    const timeout = require('connect-timeout');
+    //set timeout 5 minutes
+    app.use(timeout('300s'));
+    
     // Setup Database
 	mongoose.Promise = global.Promise;
 	mongoose.connect(config.database.url, {
