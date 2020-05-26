@@ -8,17 +8,17 @@
  | supported by NodeJS is shown below to make development simple.
  |
  */
-module.exports = {
-    dev: {
-        url: 'mongodb://s_auth:s_auth@dbappdev.tap-agri.com:4848/s_auth?authSource=s_auth',
-        ssl: false
-    },
-    qa: {
-        url: 'mongodb://s_auth:4uth2019@dbappqa.tap-agri.com:4848/s_auth?authSource=s_auth',
-        ssl: false
-    },
-    prod: {
-        url: 'mongodb://s_auth:4uth2019@dbapp.tap-agri.com:4848/s_auth?authSource=s_auth',
-        ssl: false
+    module.exports = {
+        dev: {
+            url: 'mongodb://s_auth:s_auth@dbmongodev.tap-agri.com:4848/s_auth?authSource=s_auth',
+            ssl: false
+        },
+        qa: {
+            url: 'mongodb://s_auth:4uth2019@dbmongoqa.tap-agri.com:4848/s_auth?authSource=s_auth',
+            ssl: false
+        },
+        prod: {
+            url: 'mongodb://s_auth:4uth2019@dbmongo.tap-agri.com:4848/s_auth?authSource=s_auth',
+            ssl: false
+        }
     }
-}
