@@ -63,11 +63,11 @@
 				qa: {
 					ldap: 'http://tap-ldapdev.tap-agri.com/login',
 					ldap_2: 'http://tap-ldapdev.tap-agri.com',
-					microservice_auth: 'http://app.tap-agri.com/mobileinspectionqa/ins-msa-qa-auth',
-					microservice_ebcc_validation: 'http://app.tap-agri.com/mobileinspectionqa/ins-msa-qa-ebccval',
-					microservice_finding: 'http://app.tap-agri.com/mobileinspectionqa/ins-msa-qa-finding',
-					microservice_hectare_statement: 'http://app.tap-agri.com/mobileinspectionqa/ins-msa-qa-hectarestatement',
-					microservice_inspection: 'http://app.tap-agri.com/mobileinspectionqa/ins-msa-qa-inspection',
+					microservice_auth: 'http://apisqa.tap-agri.com/mobileinspectionqa/ins-msa-qa-auth',
+					microservice_ebcc_validation: 'http://apisqa.tap-agri.com/mobileinspectionqa/ins-msa-qa-ebccval',
+					microservice_finding: 'http://apisqa.tap-agri.com/mobileinspectionqa/ins-msa-qa-finding',
+					microservice_hectare_statement: 'http://apisqa.tap-agri.com/mobileinspectionqa/ins-msa-qa-hectarestatement',
+					microservice_inspection: 'http://apisqa.tap-agri.com/mobileinspectionqa/ins-msa-qa-inspection',
 					microservice_images: 'http://image.tap-agri.com:5012',
 				},
 				prod: {
