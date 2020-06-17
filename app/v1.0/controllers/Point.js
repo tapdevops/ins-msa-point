@@ -93,7 +93,8 @@
                     {
                         $group: {
                             _id: {
-                                USER_AUTH_CODE: "$USER_AUTH_CODE"
+                                USER_AUTH_CODE: "$USER_AUTH_CODE",
+                                MONTH: "$MONTH"
                             },
                             POINT: { $sum: "$POINT" }, 
                             LAST_INSPECTION_DATE: { $max: "$LAST_INSPECTION_DATE" } 
@@ -114,10 +115,16 @@
                         $project: {
                             _id: 0,
                             USER_AUTH_CODE: "$_id.USER_AUTH_CODE",
+                            MONTH: "$_id.MONTH",
                             LOCATION_CODE: "$viewUserAuth.LOCATION_CODE",
                             POINT: "$POINT",
                             LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE",
                             USER_ROLE: "$viewUserAuth.USER_ROLE"
+                        }
+                    },
+                    { 
+                        $match: {
+                            MONTH: dateNumber
                         }
                     }
                 ])
