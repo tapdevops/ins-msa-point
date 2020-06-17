@@ -72,7 +72,10 @@
             //Periksa current user di TR_POINT, jika tidak ada 
             //insert data current user dengan POINT 0
             Models.Point.findOneAndUpdate(
-                { USER_AUTH_CODE: authCode },
+                { 
+                    USER_AUTH_CODE: authCode,
+                    MONTH: dateNumber,
+                },
                 {
                   $setOnInsert: { 
                       USER_AUTH_CODE: authCode,
