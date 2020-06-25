@@ -24,16 +24,14 @@
 
         exports.myPoint = async (req, res) => {
             let authCode = req.auth.USER_AUTH_CODE;
+            let date = new Date();
+            var d = new Date(date.getFullYear(), date.getMonth() + 1, 0); //get tanggal terakhir untuk bulan sekarang
+            let dateNumber = parseInt(dateformat(d, 'yyyymmdd')); //misalnya 20203101
             let userPoint = await Models.Point.aggregate([
                 {
-                    $group: {
-                        _id: {
-                            USER_AUTH_CODE: "$USER_AUTH_CODE"
-                        },POINT: { $sum: "$POINT" }
-                    }
-                }, {
                     $match: {
-                        "_id.USER_AUTH_CODE": authCode
+                        "USER_AUTH_CODE": authCode,
+                        MONTH: dateNumber
                     }
                 }
             ]);
@@ -72,7 +70,10 @@
             //Periksa current user di TR_POINT, jika tidak ada 
             //insert data current user dengan POINT 0
             Models.Point.findOneAndUpdate(
-                { USER_AUTH_CODE: authCode },
+                { 
+                    USER_AUTH_CODE: authCode,
+                    MONTH: dateNumber,
+                },
                 {
                   $setOnInsert: { 
                       USER_AUTH_CODE: authCode,
@@ -93,7 +94,8 @@
                     {
                         $group: {
                             _id: {
-                                USER_AUTH_CODE: "$USER_AUTH_CODE"
+                                USER_AUTH_CODE: "$USER_AUTH_CODE",
+                                MONTH: "$MONTH"
                             },
                             POINT: { $sum: "$POINT" }, 
                             LAST_INSPECTION_DATE: { $max: "$LAST_INSPECTION_DATE" } 
@@ -114,10 +116,16 @@
                         $project: {
                             _id: 0,
                             USER_AUTH_CODE: "$_id.USER_AUTH_CODE",
+                            MONTH: "$_id.MONTH",
                             LOCATION_CODE: "$viewUserAuth.LOCATION_CODE",
                             POINT: "$POINT",
                             LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE",
                             USER_ROLE: "$viewUserAuth.USER_ROLE"
+                        }
+                    },
+                    { 
+                        $match: {
+                            MONTH: dateNumber
                         }
                     }
                 ])
