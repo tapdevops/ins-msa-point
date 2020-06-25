@@ -24,16 +24,14 @@
 
         exports.myPoint = async (req, res) => {
             let authCode = req.auth.USER_AUTH_CODE;
+            let date = new Date();
+            var d = new Date(date.getFullYear(), date.getMonth() + 1, 0); //get tanggal terakhir untuk bulan sekarang
+            let dateNumber = parseInt(dateformat(d, 'yyyymmdd')); //misalnya 20203101
             let userPoint = await Models.Point.aggregate([
                 {
-                    $group: {
-                        _id: {
-                            USER_AUTH_CODE: "$USER_AUTH_CODE"
-                        },POINT: { $sum: "$POINT" }
-                    }
-                }, {
                     $match: {
-                        "_id.USER_AUTH_CODE": authCode
+                        "USER_AUTH_CODE": authCode,
+                        MONTH: dateNumber
                     }
                 }
             ]);
