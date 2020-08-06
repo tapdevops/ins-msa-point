@@ -6,6 +6,9 @@
 
     //Controllers
     const Controllers = {
+        v_1_1: {
+            Point: require( _directory_base + '/app/v1.1/controllers/Point.js' ),
+        },
         v_1_0: {
             Point: require( _directory_base + '/app/v1.0/controllers/Point.js' ),
         }
@@ -27,6 +30,14 @@
                     } 
                 } )
             } );
+            
+        /*
+        |--------------------------------------------------------------------------
+        | Versi 1.1
+        |--------------------------------------------------------------------------
+        */
+       //tambahan rank point user untuk Kabun dan EM 
+        app.get('/api/v1.1/point/users', VerifyToken,  Controllers.v_1_1.Point.userPoints);
             
         /*
         |--------------------------------------------------------------------------
