@@ -472,18 +472,6 @@
             }
             let month = parseInt(req.params.month);
             
-            // Models.Comp.findOne({COMP_CODE: "41"})
-            // .then(data => {
-            //     console.log(data);
-            //     res.send({
-            //         status: true,
-            //         message: 'Success',
-            //         data: []
-            //     });
-            // })
-            // .catch(err => {
-            //     console.log(err);
-            // })
             async.auto({
                 getAllPoints: function(callback) {
                     Models.Point.aggregate([
@@ -544,8 +532,6 @@
                     let points = results.mappingPeriode;
                     async.each(points, function(point, callbackEach) {
                         let compCode = point.LOCATION_CODE.substring(0, 2);
-                        console.log(point.LOCATION_CODE.substr(0, 10));
-                        // console.log(compCode);
                         Models.Comp.findOne({COMP_CODE: compCode}).select({_id: 0, COMP_NAME: 1})
                         .then( data => {
                             point.BUSINESS_AREA = data.COMP_NAME;
@@ -578,8 +564,6 @@
                     data: results.getCompName
                 });
             });
-                
-
         }
        
         
