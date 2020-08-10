@@ -3,10 +3,11 @@
 | Global APP Init
 |--------------------------------------------------------------------------
 */
+    global.defaultDB = 'auth';
     global._directory_base = __dirname;
     global.config = {};
     config.app = require('./config/app.js');
-    config.database = require('./config/database.js')[config.app.env];
+    config.database = require('./config/database.js')[defaultDB][config.app.env];
 
 /*
 |--------------------------------------------------------------------------

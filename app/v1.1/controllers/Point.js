@@ -9,12 +9,14 @@
     //Models
     const Models = {
         Point: require(_directory_base + '/app/models/Point.js'),
-        ViewUserAuth: require(_directory_base + '/app/models/ViewUserAuth.js')
+        ViewUserAuth: require(_directory_base + '/app/models/ViewUserAuth.js'),
+        Comp: require(_directory_base + '/app/models/Comp.js'),
     }
 
     //Node_modules
     const dateformat = require('dateformat');
     const axios = require('axios');
+    const async = require('async');
 
     /*
     |--------------------------------------------------------------------------
@@ -458,6 +460,126 @@
             .catch(err => {
                 console.log(err);
             });
+        }
+
+        exports.report = (req, res) => {
+            if(!req.params.month) {
+                return res.send({
+                    status: false, 
+                    message: 'Month not found!',
+                    data: []
+                });
+            }
+            let month = parseInt(req.params.month);
+            
+            // Models.Comp.findOne({COMP_CODE: "41"})
+            // .then(data => {
+            //     console.log(data);
+            //     res.send({
+            //         status: true,
+            //         message: 'Success',
+            //         data: []
+            //     });
+            // })
+            // .catch(err => {
+            //     console.log(err);
+            // })
+            async.auto({
+                getAllPoints: function(callback) {
+                    Models.Point.aggregate([
+                        {
+                            $lookup: {
+                                from: "VIEW_USER_AUTH",
+                                foreignField: "USER_AUTH_CODE",
+                                localField: "USER_AUTH_CODE",
+                                as: "viewUser"
+                            }
+                        },{
+                        $unwind: "$viewUser" 
+                        },{
+                            $project: {
+                                _id: 0,
+                                FULLNAME: {$ifNull: ["$viewUser.HRIS_FULLNAME", "$viewUser.PJS_FULLNAME"]},
+                                NIK: "$viewUser.EMPLOYEE_NIK",
+                                USER_AUTH_CODE: 1,
+                                LOCATION_CODE: "$viewUser.LOCATION_CODE",
+                                POINT: 1,
+                                MONTH: 1,
+                                JOB: {$ifNull: ["$viewUser.HRIS_JOB", "$viewUser.PJS_JOB"]}
+                            }
+                        },{
+                            $match: {
+                                MONTH: month,
+                                JOB: 'ASISTEN LAPANGAN'
+                            }
+                        }, {
+                            $sort: {
+                                POINT: -1
+                            }
+                        }
+                    ])
+                    .then(data => {
+                        callback(null, data);
+                    })
+                    .catch(err => { 
+                        console.log(err);
+                        callback(err)
+                    })
+                },
+                mappingPeriode: ['getAllPoints', function(results, callback) {
+                    let points = results.getAllPoints;
+                    points.map(async (point) => {
+                        let lastDateOfMonth = point.MONTH.toString();
+                        let year = lastDateOfMonth.substring(0, 4);
+                        let month = lastDateOfMonth.substring(5, 6);
+                        let periode = new Date(`${month}/01/${year}`);
+                        periode = dateformat(periode, 'mm/dd/yyyy');
+                        point.MONTH = undefined;
+                        point.PERIODE = periode;
+                        
+                    });
+                    callback(null, points)
+                }],
+                getCompName: ['mappingPeriode', function(results, callback) {
+                    let points = results.mappingPeriode;
+                    async.each(points, function(point, callbackEach) {
+                        let compCode = point.LOCATION_CODE.substring(0, 2);
+                        console.log(point.LOCATION_CODE.substr(0, 10));
+                        // console.log(compCode);
+                        Models.Comp.findOne({COMP_CODE: compCode}).select({_id: 0, COMP_NAME: 1})
+                        .then( data => {
+                            point.BUSINESS_AREA = data.COMP_NAME;
+                            callbackEach();
+                        })
+                        .catch(err => {
+                            console.log(err);
+                            callbackEach(err, null);
+                        });
+                    }, function(err) {
+                        if (err) {
+                            callback(err, null);
+                            return;
+                        } else {
+                            callback(null, points);
+                        }
+                    })     
+                }]
+            }, function(err, results) {
+                if(err) {
+                    return res.send({
+                        status: false,
+                        message: 'Internal Server error',
+                        data: []
+                    })
+                }
+                res.send({
+                    status: true,
+                    message: 'Success',
+                    data: results.getCompName
+                });
+            });
+                
+
         }
        
         

@@ -9,16 +9,32 @@
  |
  */
     module.exports = {
-        dev: {
-            url: 'mongodb://s_auth:s_auth@dbmongodev.tap-agri.com:4848/s_auth?authSource=s_auth',
-            ssl: false
+        auth: {
+            dev: {
+                url: 'mongodb://s_auth:s_auth@dbmongodev.tap-agri.com:4848/s_auth?authSource=s_auth',
+                ssl: false
+            },
+            qa: {
+                url: 'mongodb://s_auth:4uth2019@dbmongoqa.tap-agri.com:4848/s_auth?authSource=s_auth',
+                ssl: false
+            },
+            prod: {
+                url: 'mongodb://s_auth:4uth2019@dbmongo.tap-agri.com:4848/s_auth?authSource=s_auth',
+                ssl: false
+            }
         },
-        qa: {
-            url: 'mongodb://s_auth:4uth2019@dbmongoqa.tap-agri.com:4848/s_auth?authSource=s_auth',
-            ssl: false
-        },
-        prod: {
-            url: 'mongodb://s_auth:4uth2019@dbmongo.tap-agri.com:4848/s_auth?authSource=s_auth',
-            ssl: false
+        hectareStatement: {
+            dev: {
+                url: 'mongodb://s_hectare_statement:s_hectare_statement@dbmongodev.tap-agri.com:4848/s_hectare_statement?authSource=s_hectare_statement',
+                ssl: false
+            },
+            qa: {
+                url: 'mongodb://s_hectare_statement:h52019@dbmongoqa.tap-agri.com:4848/s_hectare_statement?authSource=s_hectare_statement',
+                ssl: false
+            },
+            prod: {
+                url: 'mongodb://s_hectare_statement:h52019@dbmongo.tap-agri.com:4848/s_hectare_statement?authSource=s_hectare_statement',
+                ssl: false
+            }
         }
     }
