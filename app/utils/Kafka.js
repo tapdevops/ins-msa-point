@@ -77,11 +77,9 @@
         }
         async save(message, offsetFetch) {
             try {
-                let date = new Date().toLocaleString('en-US', {
-                    timeZone: 'Asia/Jakarta'
-                });
-                var d = new Date(date.getFullYear(), date.getMonth() + 1, 0); //get tanggal terakhir untuk bulan sekarang
-                let dateNumber = parseInt(dateformat(d, 'yyyymmdd')); //misalnya 20203101
+                let now = moment(new Date()).tz('Asia/Jakarta')
+                let endOfMonth = new Date(now.year(), now.month() + 1, 0);
+                let dateNumber = parseInt(dateformat(endOfMonth, 'yyyymmdd')); //misalnya 20203101
                 let data = JSON.parse(message.value);
                 let topic = message.topic;
                 let inspectionDate = parseInt(moment( new Date() ).tz( "Asia/Jakarta" ).format( "YYYYMMDDHHmmss" ));

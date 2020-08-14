@@ -406,6 +406,10 @@
                 }
                 return usersToReturn;
             } else {
+                // let splittedLocationCode = locationCode.split(',');
+                // for(let i = 0; i < splittedLocationCode.length; i++) {
+                    
+                // }
                 if (level == 'BA') {
                     for(let i = index; i < users.length; i++) {
                         if(users[i]) {
