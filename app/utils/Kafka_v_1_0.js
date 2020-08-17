@@ -83,7 +83,6 @@
                 let data = JSON.parse(message.value);
                 let topic = message.topic;
                 let inspectionDate = parseInt(moment( new Date() ).tz( "Asia/Jakarta" ).format( "YYYYMMDDHHmmss" ));
-                let werks = data.WERKS;
                 
                 if (topic === 'INS_MSA_FINDING_TR_FINDING') {
 
@@ -91,21 +90,23 @@
                     if (data.END_TIME != "" && data.RTGVL == 0) {
                         let endTimeNumber = parseInt(data.END_TIME.substring(0, 8));
                         let dueDate = parseInt(data.DUE_DATE.substring(0, 8));
+                        
                         //jika finding sudah diselesaikan dan tidak overdue dapat 5 point ,
                         // jika overdue maka user yang menyelasaikan finding tidak mendapatkan tambahan point
                         if (endTimeNumber <= dueDate) {
-                            this.updatePoint(data.UPTUR, 5, dateNumber, null, werks);
+                            this.updatePoint(data.UPTUR, 5, dateNumber);
                         }
                         
                         //update point user yang membuat finding
-                        this.updatePoint(data.INSUR, 2, dateNumber, null, werks);
+                        this.updatePoint(data.INSUR, 2, dateNumber);
+
                         //memberi tambahan point sesuai rating yang diberikan
                         
                     } else if (data.END_TIME != "" && data.RTGVL != 0) {
                         let ratings = [1, 2, 3, 4];
                         for (let i = 0; i < ratings.length; i++) {
                             if (data.RTGVL == ratings[i]) {
-                                this.updatePoint(data.UPTUR, ratings[i] - 2, dateNumber, null, werks);
+                                this.updatePoint(data.UPTUR, ratings[i] - 2, dateNumber);
                                 break;
                             }
                         }
@@ -113,12 +114,12 @@
                     this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
                     this.updateOffset(topic, offsetFetch);
-                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate, werks);
+                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
                 } else if (topic === 'INS_MSA_INS_TR_INSPECTION_GENBA') {
-                    this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate, werks);
+                    this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate);
                     this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H') {
-                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate, werks);
+                    this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate);
                     this.updateOffset(topic, offsetFetch);
                 }
             } catch (err) {
@@ -127,56 +128,56 @@
         }
 
         //tambahkan point user
-        async updatePoint(userAuthCode, point, dateNumber, inspectionDate = 0, werks) {
-            console.log(werks);
-            let set = new Models.Point({
-                USER_AUTH_CODE: userAuthCode, 
-                LOCATION_CODE: werks,
-                MONTH: dateNumber,
-                POINT: point,
-                LAST_INSPECTION_DATE: inspectionDate
-            });
-            // console.log(set);
-            await set.save()
-            .then(data => {
-                console.log('berhasil save');
-            })
-            .catch(err => {
-                if (inspectionDate != 0) {
-                    Models.Point.updateOne({
-                        USER_AUTH_CODE: userAuthCode,
-                        LOCATION_CODE: werks,
-                        MONTH: dateNumber,
-                    }, {
-                        LAST_INSPECTION_DATE: inspectionDate,
-                        $inc: {
-                            POINT: point
-                        }
-                    })
-                    .then( () => {
-                        console.log("sukses update", userAuthCode)
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
-                } else {
-                    Models.Point.updateOne({
-                        USER_AUTH_CODE: userAuthCode,
-                        MONTH: dateNumber,
-                        LOCATION_CODE: werks,
-                    }, {
-                        $inc: {
-                            POINT: point
-                        }
-                    })  
-                    .then( (data) => {
-                        console.log("sukses update", userAuthCode)
-                    })
-                    .catch(err => {
-                        console.log(err);
-                    });
-                }
-            });
+        async updatePoint(userAuthCode, point, dateNumber, inspectionDate = 0) {
+            let locationCode = await Models.ViewUserAuth.findOne({USER_AUTH_CODE: userAuthCode}).select({LOCATION_CODE: 1});
+            if (locationCode){
+                let set = new Models.Point({
+                    USER_AUTH_CODE: userAuthCode, 
+                    LOCATION_CODE: locationCode.LOCATION_CODE,
+                    MONTH: dateNumber,
+                    POINT: point,
+                    LAST_INSPECTION_DATE: inspectionDate
+                });
+                // console.log(set);
+                await set.save()
+                .then(data => {
+                    console.log('berhasil save');
+                })
+                .catch(err => {
+                    if (inspectionDate != 0) {
+                        Models.Point.updateOne({
+                            USER_AUTH_CODE: userAuthCode,
+                            MONTH: dateNumber,
+                        }, {
+                            LAST_INSPECTION_DATE: inspectionDate,
+                            $inc: {
+                                POINT: point
+                            }
+                        })
+                        .then( () => {
+                            console.log("sukses update", userAuthCode)
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        });
+                    } else {
+                        Models.Point.updateOne({
+                            USER_AUTH_CODE: userAuthCode,
+                            MONTH: dateNumber,
+                        }, {
+                            $inc: {
+                                POINT: point
+                            }
+                        })  
+                        .then( () => {
+                            console.log("sukses update", userAuthCode)
+                        })
+                        .catch(err => {
+                            console.log(err);
+                        });
+                    }
+                });
+            }
         }
         
         //untuk mendapatkan semua offset dari setiap topic
