@@ -70,6 +70,11 @@
             let locationCode = auth.LOCATION_CODE;
             let splittedLocationCode = locationCode.split(',');
             let firstLocationCode = splittedLocationCode[0].length >= 4 ? splittedLocationCode[0].substring(0, 4) : splittedLocationCode[0].substring(0, 2);
+            let substringLocationCode = splittedLocationCode.map(l => {
+                return l.length >= 4 ? l.substring(0, 4) : l.substring(0,2);
+            });
+            let uniqueLocationCode = [...new Set(substringLocationCode)];
+            auth.LOCATION_CODE = uniqueLocationCode.join(",");
             let now = moment(new Date()).tz('Asia/Jakarta')
             let endOfMonth = new Date(now.year(), now.month() + 1, 0);
             let dateNumber = parseInt(dateformat(endOfMonth, 'yyyymmdd')); //misalnya 20203101
