@@ -11,10 +11,12 @@
         Point: require(_directory_base + '/app/models/Point.js'),
         ViewUserAuth: require(_directory_base + '/app/models/ViewUserAuth.js'),
         Comp: require(_directory_base + '/app/models/Comp.js'),
+        Est: require(_directory_base + '/app/models/Est.js'),
     }
 
     //Node_modules
     const dateformat = require('dateformat');
+    const moment = require( 'moment-timezone');
     const axios = require('axios');
     const async = require('async');
 
@@ -62,12 +64,15 @@
     |*/
     
         exports.userPoints = async (req, res) => {
-            let authCode = req.auth.USER_AUTH_CODE;
+            let auth = req.auth;
+            let authCode = auth.USER_AUTH_CODE;
             let response = [];
-            let locationCode = await Models.ViewUserAuth.findOne({USER_AUTH_CODE: authCode}).select({LOCATION_CODE: 1});
-            let date = new Date();
-            var d = new Date(date.getFullYear(), date.getMonth() + 1, 0); //get tanggal terakhir untuk bulan sekarang
-            let dateNumber = parseInt(dateformat(d, 'yyyymmdd')); //misalnya 20203101
+            let locationCode = auth.LOCATION_CODE;
+            let splittedLocationCode = locationCode.split(',');
+            let firstLocationCode = splittedLocationCode[0].length >= 4 ? splittedLocationCode[0].substring(0, 4) : splittedLocationCode[0].substring(0, 2);
+            let now = moment(new Date()).tz('Asia/Jakarta')
+            let endOfMonth = new Date(now.year(), now.month() + 1, 0);
+            let dateNumber = parseInt(dateformat(endOfMonth, 'yyyymmdd')); //misalnya 20203101
             
             //Periksa current user di TR_POINT, jika tidak ada 
             //insert data current user dengan POINT 0
@@ -75,12 +80,12 @@
                 { 
                     USER_AUTH_CODE: authCode,
                     MONTH: dateNumber,
-                },
-                {
+                    LOCATION_CODE: firstLocationCode
+                }, {
                   $setOnInsert: { 
                       USER_AUTH_CODE: authCode,
                       MONTH: dateNumber,
-                      LOCATION_CODE: locationCode.LOCATION_CODE,
+                      LOCATION_CODE: firstLocationCode,
                       POINT: 0, 
                       LAST_INSPECTION_DATE: 0
                    },
@@ -97,7 +102,8 @@
                         $group: {
                             _id: {
                                 USER_AUTH_CODE: "$USER_AUTH_CODE",
-                                MONTH: "$MONTH"
+                                MONTH: "$MONTH",
+                                LOCATION_CODE: "$LOCATION_CODE"
                             },
                             POINT: { $sum: "$POINT" }, 
                             LAST_INSPECTION_DATE: { $max: "$LAST_INSPECTION_DATE" } 
@@ -119,7 +125,7 @@
                             _id: 0,
                             USER_AUTH_CODE: "$_id.USER_AUTH_CODE",
                             MONTH: "$_id.MONTH",
-                            LOCATION_CODE: "$viewUserAuth.LOCATION_CODE",
+                            LOCATION_CODE: "$_id.LOCATION_CODE",
                             POINT: "$POINT",
                             LAST_INSPECTION_DATE: "$LAST_INSPECTION_DATE",
                             USER_ROLE: "$viewUserAuth.USER_ROLE"
@@ -127,12 +133,12 @@
                     },
                     { 
                         $match: {
-                            MONTH: dateNumber
+                            MONTH: dateNumber,
+                            USER_ROLE: 'ASISTEN_LAPANGAN'
                         }
                     }
                 ])
-                let currentUser = allUserPoints.filter(user => user.USER_AUTH_CODE == authCode);
-                allUserPoints = allUserPoints.filter(user => user.USER_ROLE == 'ASISTEN_LAPANGAN');
+                let currentUser = req.auth;
                 if (allUserPoints.length > 0) {
                     allUserPoints.sort((a,b) => {
                         
@@ -150,21 +156,29 @@
                     let allUserPointsCOMP = allUserPoints.map(object => ({ ...object}));
                     
                     //dapatkan users BA, dan COMP dengan memfilter allUserPoints menggunakan LOCATION_CODE dari setiap user
-                    let BAUsers = getBAUsers(allUserPointsBA, currentUser, req.auth.USER_ROLE);
-                    let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser, req.auth.USER_ROLE);
+                    let BAUsers = await getBAUsers(allUserPointsBA, currentUser);
+                    let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
+                    let national = groupAndSumPoint(allUserPoints);
                     //get index current user (BA, COMP, National)
                     //jika user_role bukan asisten_lapangan indexUser = 0
-                    let BAIndex = req.auth.USER_ROLE != 'ASISTEN_LAPANGAN' ? 0 : getIndex(BAUsers, currentUser);
+                    let baUsers = [];
+                    for(let i = 0; i < BAUsers.length; i++) {
+                        let user = {};
+                        let BAIndex = req.auth.USER_ROLE != 'ASISTEN_LAPANGAN' ? 0 : getIndex(BAUsers[i].USERS, currentUser);
+                        user.EST_NAME = BAUsers[i].EST_NAME;
+                        user.USERS = await getUsers(BAUsers[i].USERS, BAIndex, req, 'BA');
+                        baUsers.push(user);
+                    }
                     let COMPIndex = req.auth.USER_ROLE != 'ASISTEN_LAPANGAN' ? 0 : getIndex(COMPUsers, currentUser);
-                    let nationalIndex = req.auth.USER_ROLE != 'ASISTEN_LAPANGAN' ? 0 : getIndex(allUserPoints, currentUser);
+                    let nationalIndex = req.auth.USER_ROLE != 'ASISTEN_LAPANGAN' ? 0 : getIndex(national, currentUser);
                     
                     /*jika role user asisten lapangan dapatkan 6 user BA, COMP, dan National
                      * jika role user bukan asisten lapangan maka tampilkan
                      * semua rank point BA, top 10 COMPANY, dan top 10 NATIONAL
                     */
-                    let baUsers = await getUsers(BAUsers, BAIndex, req, 'BA');
+                    
                     let compUsers = await getUsers(COMPUsers, COMPIndex, req, 'COMPANY');
-                    let nationalUsers = await getUsers(allUserPoints, nationalIndex, req, 'NATIONAL');
+                    let nationalUsers = await getUsers(national, nationalIndex, req, 'NATIONAL');
                     
                     response.push({
                         BA: baUsers,
@@ -195,115 +209,71 @@
             });
         }
 
-        function getBAUsers(allUsers, currentUser, userRole) {
-            if (userRole == 'ASISTEN_LAPANGAN') {
-                let BARegex = new RegExp(currentUser[0].LOCATION_CODE.substring(0, 4)); //contoh value 4122
+        async function getBAUsers(allUsers, currentUser) {
+            let currentUserLocationCodes = currentUser.LOCATION_CODE.split(',');
+            let baUsers = [];
+            for(let i = 0; i < currentUserLocationCodes.length; i++) {
+                let endIndex = currentUserLocationCodes[i].length >= 4 ? 4 : 2;
+                let currentLocationCode = currentUserLocationCodes[i].substring(0, endIndex);
+                let user = {};
+                let estName = await Models.Est.findOne({WERKS: currentLocationCode}).select({EST_NAME: 1});
                 let BAUsers = allUsers.filter(user => {
-                    return user.LOCATION_CODE.match(BARegex);
+                    return user.LOCATION_CODE.substring(0, endIndex) == currentLocationCode;
                 });
-                return BAUsers;
-            } else if(userRole == 'KEPALA_KEBUN') {
-                let BAUsers = allUsers.filter(user => {
-                    /*
-                    * SPLIT location code kepala kebun misalny 4122V,4123X,4122R
-                    * Menjadi array[4122V,4123X,4122R]    
-                    */
-                    let locationCodes = currentUser[0].LOCATION_CODE.split(',');
-                    let userLocationCode = user.LOCATION_CODE.substring(0, 4); //hilangkan afd_code misalnya 4122R => 4122
-                    for(let i = 0; i < locationCodes.length; i++) {
-                        let ba = locationCodes[i].substring(0, 4); //contoh value 4122
-                        if (userLocationCode == ba) {
-                            return true;
-                        }
-                    }
-                });
-                return BAUsers;
-            } else if(userRole == 'EM') {
-                let BAUsers = allUsers.filter(user => {
-                    /*
-                    * SPLIT location code kepala kebun misalny 4122V,4123X,4122R
-                    * Menjadi array[4122V,4123X,4122R]    
-                    */
-                    let locationCodes = currentUser[0].LOCATION_CODE.split(',');
-                    for(let i = 0; i < locationCodes.length; i++) {
-
-                        //jika location code dari EM lebih dari 2 digit maka substring sampai index 4 misalny 4122R => 4122
-                        //jika location code dari EM hanya 2 digit langsung assign ke variable ba
-                        let ba = locationCodes[i].length > 2 ? locationCodes[i].substring(0, 4) : locationCodes[i]; 
-                        
-                        //jika location code dari EM lebih dari 2 digit maka substring setiap location code user sampai index 4 misalny 4122R => 4122
-                        //jika location code dari EM hanya 2 digit maka substring setiap location code user sampai index 2 misalny 4122R => 41
-                        let userLocationCode = locationCodes[i].length > 2 ? user.LOCATION_CODE.substring(0, 4) : user.LOCATION_CODE.substring(0, 2);
-                        if (userLocationCode == ba) {
-                            return true;
-                        }
-                    }
-                });
-                return BAUsers;
+                user.EST_NAME = estName.EST_NAME;
+                user.USERS = BAUsers;
+                baUsers.push(user);
             }
+            return baUsers;
         }
        
         function getCOMPUsers(allUsers, currentUser, userRole) {
-            if (userRole == 'ASISTEN_LAPANGAN') {
-                let currentUserLocationCode = currentUser[0].LOCATION_CODE.substring(0, 2); //contoh value 41
-                let COMPUsers = allUsers.filter(user => {
+            let COMPUsers = allUsers.filter(user => {
+                /*
+                * SPLIT location code kepala kebun misalny 4122V,4123X,4122R
+                * Menjadi array[4122V,4123X,4122R] karena kepala kebun memiliki banyak location code    
+                */
+                let locationCodes = currentUser.LOCATION_CODE.split(','); 
+                for(let i = 0; i < locationCodes.length; i++) {
+                    //ambil 2 digit pertama untuk di compare di level company contoh value 41
+                    let currentUserLocationCode = locationCodes[i].substring(0, 2); 
+                    // semua location code user di split misalnya [4122,4123]
                     let splittedLocationCode = user.LOCATION_CODE.split(',')
+
                     // filterCOMPUser(splittedLocationCode, currentUserLocationCode)
-                    for(let i = 0; i < splittedLocationCode.length; i++) {
-                        let compCode = splittedLocationCode[i].substring(0, 2)
-                        if (compCode == currentUserLocationCode) {
+                    for(let j = 0; j < splittedLocationCode.length; j++) {
+                        //ambil 2 digit pertama untuk di compare di level company
+                        let compCode = splittedLocationCode[j].substring(0, 2); 
+                        //misalnya 41 dan 41 maka return true
+                        if (compCode == currentUserLocationCode) { 
                             return true
                         }
                     }
-                });
-                return COMPUsers;
-            } else if(userRole == 'KEPALA_KEBUN') {
-                let COMPUsers = allUsers.filter(user => {
-                    /*
-                    * SPLIT location code kepala kebun misalny 4122V,4123X,4122R
-                    * Menjadi array[4122V,4123X,4122R] karena kepala kebun memiliki banyak location code    
-                    */
-                    let locationCodes = currentUser[0].LOCATION_CODE.split(','); 
-                    for(let i = 0; i < locationCodes.length; i++) {
-                        //ambil 2 digit pertama untuk di compare di level company contoh value 41
-                        let currentUserLocationCode = locationCodes[i].substring(0, 2); 
-                        // semua location code user di split misalnya [4122,4123]
-                        let splittedLocationCode = user.LOCATION_CODE.split(',')
+                }
+            });
+            let groupedCompUser = groupAndSumPoint(COMPUsers);
+            return groupedCompUser;
+        }
 
-                        // filterCOMPUser(splittedLocationCode, currentUserLocationCode)
-                        for(let i = 0; i < splittedLocationCode.length; i++) {
-                            //ambil 2 digit pertama untuk di compare di level company
-                            let compCode = splittedLocationCode[i].substring(0, 2); 
-                            //misalnya 41 dan 41 maka return true
-                            if (compCode == currentUserLocationCode) { 
-                                return true
-                            }
-                        }
-                    }
-                });
-                return COMPUsers;
-            } else if(userRole == 'EM') {
-                let COMPUsers = allUsers.filter(user => {
-                    /*
-                    * SPLIT location code kepala kebun misalny 4122V,4123X,4122R
-                    * Menjadi array[4122V,4123X,4122R]    
-                    */
-                    let locationCodes = currentUser[0].LOCATION_CODE.split(',');
-                    for(let i = 0; i < locationCodes.length; i++) {
-
-                        //substring setiap location code EM sampai index 2, misalny 4122R => 41
-                        let ba = locationCodes[i].substring(0, 2);
-                        
-                        //substring setiap location code user sampai index 2, misalny 4122R => 41
-                        let userLocationCode = user.LOCATION_CODE.substring(0, 2);
-                        
-                        if (userLocationCode == ba) {
-                            return true;
-                        }
-                    }
-                });
-                return COMPUsers;
-            }
+        function groupAndSumPoint(users) {
+            //grouping dan sum user point berdasarkan user_auth_code
+            var result = [];
+            users.reduce(function(res, value) {
+                if (!res[value.USER_AUTH_CODE]) {
+                    res[value.USER_AUTH_CODE] = { 
+                        USER_AUTH_CODE: value.USER_AUTH_CODE, 
+                        MONTH: value.MONTH,
+                        LOCATION_CODE: value.LOCATION_CODE,
+                        POINT: 0,
+                        LAST_INSPECTION_DATE: value.LAST_INSPECTION_DATE,
+                        USER_ROLE: value.USER_ROLE
+                    };
+                    result.push(res[value.USER_AUTH_CODE])
+                }
+                res[value.USER_AUTH_CODE].POINT += value.POINT;
+                return res;
+            }, {});
+            return result;
         }
 
         async function getUsers(users, index, req, level) {
@@ -406,10 +376,6 @@
                 }
                 return usersToReturn;
             } else {
-                // let splittedLocationCode = locationCode.split(',');
-                // for(let i = 0; i < splittedLocationCode.length; i++) {
-                    
-                // }
                 if (level == 'BA') {
                     for(let i = index; i < users.length; i++) {
                         if(users[i]) {
@@ -433,7 +399,7 @@
 
         function getIndex(users, currentUser) {
             let index = users.findIndex(user => {
-                return user.USER_AUTH_CODE === currentUser[0].USER_AUTH_CODE
+                return user.USER_AUTH_CODE === currentUser.USER_AUTH_CODE
             });
             return index;
         }
