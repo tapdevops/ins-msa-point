@@ -459,16 +459,16 @@
                                 _id: 0,
                                 FULLNAME: {$ifNull: ["$viewUser.HRIS_FULLNAME", "$viewUser.PJS_FULLNAME"]},
                                 NIK: "$viewUser.EMPLOYEE_NIK",
+                                JOB: "$viewUser.USER_ROLE",
                                 USER_AUTH_CODE: 1,
-                                LOCATION_CODE: "$viewUser.LOCATION_CODE",
+                                LOCATION_CODE: 1,
                                 POINT: 1,
                                 MONTH: 1,
-                                JOB: {$ifNull: ["$viewUser.HRIS_JOB", "$viewUser.PJS_JOB"]}
                             }
                         },{
                             $match: {
                                 MONTH: month,
-                                JOB: 'ASISTEN LAPANGAN'
+                                JOB: 'ASISTEN_LAPANGAN'
                             }
                         }, {
                             $sort: {
