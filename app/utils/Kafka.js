@@ -11,7 +11,8 @@
     const Models = {
         Point: require( _directory_base + '/app/models/Point.js'),
         KafkaPayload: require( _directory_base + '/app/models/KafkaPayload.js'),
-        ViewUserAuth: require( _directory_base + '/app/models/ViewUserAuth.js')
+        ViewUserAuth: require( _directory_base + '/app/models/ViewUserAuth.js'),
+        InspectionH: require( _directory_base + '/app/models/InspectionH.js'),
     }
 /*
 |--------------------------------------------------------------------------
@@ -115,7 +116,9 @@
                     this.updateOffset(topic, offsetFetch);
                     this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate, werks);
                 } else if (topic === 'INS_MSA_INS_TR_INSPECTION_GENBA') {
-                    this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate, werks);
+                    let inspection = await Models.InspectionH.findOne({BLOCK_INSPECTION_CODE: data.BLOCK_INSPECTION_CODE}).select({_id: 0, WERKS: 1});
+                    let werksGenba = inspection.WERKS;
+                    this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate, werksGenba);
                     this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H') {
                     this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate, werks);
