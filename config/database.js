@@ -36,5 +36,19 @@
                 url: 'mongodb://s_hectare_statement:h52019@dbmongo.tap-agri.com:4848/s_hectare_statement?authSource=s_hectare_statement',
                 ssl: false
             }
-        }
+        },
+        inspection: {
+			dev: {
+				url: 'mongodb://s_inspeksi:s_inspeksi@dbmongodev.tap-agri.com:4848/s_inspeksi?authSource=s_inspeksi',
+				ssl: false
+			},
+			qa: {
+				url: 'mongodb://s_inspeksi:1nsp3k5i2019@dbmongoqa.tap-agri.com:4848/s_inspeksi?authSource=s_inspeksi',
+				ssl: false
+			},
+			prod: {
+				url: 'mongodb://s_inspeksi:1nsp3k5i2019@dbmongo.tap-agri.com:4848/s_inspeksi?authSource=s_inspeksi',
+				ssl: false
+			}
+		}
     }
