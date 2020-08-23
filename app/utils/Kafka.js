@@ -116,7 +116,7 @@
                     this.updateOffset(topic, offsetFetch);
                     this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate, werks);
                 } else if (topic === 'INS_MSA_INS_TR_INSPECTION_GENBA') {
-                    let inspection = await Models.InspectionH.findOne({BLOCK_INSPECTION_CODE: data.BLOCK_INSPECTION_CODE}).select({_id: 0, WERKS: 1});
+                    let inspection = await Models.InspectionH.findOne({BLOCK_INSPECTION_CODE: data.BINCH}).select({_id: 0, WERKS: 1});
                     let werksGenba = inspection.WERKS;
                     this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate, werksGenba);
                     this.updateOffset(topic, offsetFetch);
