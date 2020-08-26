@@ -221,7 +221,7 @@
                 let endIndex = currentUserLocationCodes[i].length >= 4 ? 4 : 2;
                 let currentLocationCode = currentUserLocationCodes[i].substring(0, endIndex);
                 let user = {};
-                let estName = await Models.Est.findOne({WERKS: currentLocationCode}).select({EST_NAME: 1});
+                let estName = await Models.Est.findOne({WERKS: new RegExp(`^${currentLocationCode}`)}).select({EST_NAME: 1});
                 let BAUsers = allUsers.filter(user => {
                     return user.LOCATION_CODE.substring(0, endIndex) == currentLocationCode;
                 });
