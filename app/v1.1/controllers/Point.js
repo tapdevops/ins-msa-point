@@ -232,18 +232,21 @@
 
         async function getBAUsers(allUsers, currentUser) {
             let currentUserLocationCodes = currentUser.LOCATION_CODE.split(',');
+            console.log("current user location codes: " + currentUserLocationCodes);
             let baUsers = [];
             for(let i = 0; i < currentUserLocationCodes.length; i++) {
                 let endIndex = currentUserLocationCodes[i].length >= 4 ? 4 : 2;
                 let currentLocationCode = currentUserLocationCodes[i].substring(0, endIndex);
-                let user = {};
-                let estName = await Models.Est.findOne({WERKS: new RegExp(`^${currentLocationCode}`)}).select({EST_NAME: 1});
-                let BAUsers = allUsers.filter(user => {
-                    return user.LOCATION_CODE.substring(0, endIndex) == currentLocationCode;
-                });
-                user.EST_NAME = estName.EST_NAME;
-                user.USERS = BAUsers;
-                baUsers.push(user);
+                let estate = await Models.Est.find({WERKS: new RegExp(`^${currentLocationCode}`)}).select({_id: 0, EST_NAME: 1, WERKS: 1});
+                for(let j = 0; j < estate.length; j++) {
+                    let user = {};
+                    let BAUsers = allUsers.filter(user => {
+                        return user.LOCATION_CODE == estate[j].WERKS;
+                    });
+                    user.EST_NAME = estate[j].EST_NAME;
+                    user.USERS = BAUsers;
+                    baUsers.push(user);
+                }
             }
             return baUsers;
         }
@@ -360,39 +363,29 @@
                     for(let i = 0; i < 6; i++) {
                         if(users[i]) {
                             usersToReturn.push(users[i]);
-                        } else {
-                            usersToReturn.push(null);
-                        }
+                        } 
                     }
                 } else if (index > 3 && index < users.length - 1) { //jika current user rank > 4, maka tampilkan satu user rank atas dan bawahnya
                     for(let i = 0; i < 3; i++) {
                         if(users[i]) {
                             usersToReturn.push(users[i]);
-                        } else {
-                            usersToReturn.push(null);
-                        }
+                        } 
                     }
                     for(let i = index - 1; i <= index + 1; i++) {
                         if(users[i]) {
                             usersToReturn.push(users[i]);
-                        } else {
-                            usersToReturn.push(null);
-                        }
+                        } 
                     }
                 } else if (index === users.length - 1) { //jika current user berada di rank terakhir maka tampilkan 2 user di atasnya  
                     for(let i = 0; i < 3; i++) {
                         if(users[i]) {
                             usersToReturn.push(users[i]);
-                        } else {
-                            usersToReturn.push(null);
-                        }
+                        } 
                     }
                     for(let i = index - 2; i <= index; i++) { 
                         if(users[i]) {
                             usersToReturn.push(users[i]);
-                        } else {
-                            usersToReturn.push(null);
-                        }
+                        } 
                     }
                 }
                 return usersToReturn;
@@ -401,17 +394,13 @@
                     for(let i = index; i < users.length; i++) {
                         if(users[i]) {
                             usersToReturn.push(users[i]);
-                        } else {
-                            usersToReturn.push(null);
-                        }
+                        } 
                     }
                 } else {
                     for(let i = index; i < 10; i++) {
                         if(users[i]) {
                             usersToReturn.push(users[i]);
-                        } else {
-                            usersToReturn.push(null);
-                        }
+                        } 
                     }
                 }
                 return usersToReturn; 
