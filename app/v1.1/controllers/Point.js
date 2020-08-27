@@ -33,12 +33,28 @@
             let dateNumber = parseInt(dateformat(d, 'yyyymmdd')); //misalnya 20203101
             let userPoint = await Models.Point.aggregate([
                 {
+                    $group: {
+                        _id: {
+                            USER_AUTH_CODE: "$USER_AUTH_CODE",
+                            MONTH: "$MONTH"
+                        },
+                        POINT: { $sum : "$POINT"}
+                    }
+                }, {
+                    $project: {
+                        _id: 0,
+                        USER_AUTH_CODE: "$_id.USER_AUTH_CODE",
+                        MONTH: "$_id.MONTH",
+                        POINT: "$POINT"
+                    }
+                }, {
                     $match: {
-                        "USER_AUTH_CODE": authCode,
+                        USER_AUTH_CODE: authCode,
                         MONTH: dateNumber
                     }
                 }
             ]);
+            console.log(userPoint);
             if (userPoint.length > 0) {
                 return res.send({
                     status: true,
