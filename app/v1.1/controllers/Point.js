@@ -361,14 +361,50 @@
                 //jika current user berada di rank 1 - 4 atau jika jumlah user < 7, maka langsung tampilkan users rank 1-6
                 if (index < 4 || users.length < 7) {
                     for(let i = 0; i < 6; i++) {
-                        if(users[i]) {
-                            usersToReturn.push(users[i]);
-                        } 
+                        if(users.length == 1) {
+                            if(users[i]) {
+                                usersToReturn.push(users[i]);
+                            }
+                        } else {
+                            //jika jumlah user lebih dari 1 maka urutan rank nya diubah jadi 2, 1, 3 dst untuk 
+                            //kebutuhan mobile
+                            if(i == 0) {
+                                if(users[i + 1]) {
+                                    usersToReturn.push(users[i + 1]);
+                                }
+                            } else if(i == 1){
+                                if(users[i - 1]) {
+                                    usersToReturn.push(users[i - 1]);
+                                }
+                            } else {
+                                if(users[i]) {
+                                    usersToReturn.push(users[i]);
+                                }
+                            }
+                        }
                     }
                 } else if (index > 3 && index < users.length - 1) { //jika current user rank > 4, maka tampilkan satu user rank atas dan bawahnya
                     for(let i = 0; i < 3; i++) {
-                        if(users[i]) {
-                            usersToReturn.push(users[i]);
+                        if(users.length == 1) {
+                            if(users[i]) {
+                                usersToReturn.push(users[i]);
+                            }
+                        } else {
+                            //jika jumlah user lebih dari 1 maka urutan rank nya diubah jadi 2, 1, 3 dst untuk 
+                            //kebutuhan mobile
+                            if(i == 0) {
+                                if(users[i + 1]) {
+                                    usersToReturn.push(users[i + 1]);
+                                }
+                            } else if(i == 1){
+                                if(users[i - 1]) {
+                                    usersToReturn.push(users[i - 1]);
+                                }
+                            } else {
+                                if(users[i]) {
+                                    usersToReturn.push(users[i]);
+                                }
+                            }
                         } 
                     }
                     for(let i = index - 1; i <= index + 1; i++) {
@@ -378,9 +414,27 @@
                     }
                 } else if (index === users.length - 1) { //jika current user berada di rank terakhir maka tampilkan 2 user di atasnya  
                     for(let i = 0; i < 3; i++) {
-                        if(users[i]) {
-                            usersToReturn.push(users[i]);
-                        } 
+                        if(users.length == 1) {
+                            if(users[i]) {
+                                usersToReturn.push(users[i]);
+                            }
+                        } else {
+                            //jika jumlah user lebih dari 1 maka urutan rank nya diubah jadi 2, 1, 3 dst untuk 
+                            //kebutuhan mobile
+                            if(i == 0) {
+                                if(users[i + 1]) {
+                                    usersToReturn.push(users[i + 1]);
+                                }
+                            } else if(i == 1){
+                                if(users[i - 1]) {
+                                    usersToReturn.push(users[i - 1]);
+                                }
+                            } else {
+                                if(users[i]) {
+                                    usersToReturn.push(users[i]);
+                                }
+                            }
+                        }
                     }
                     for(let i = index - 2; i <= index; i++) { 
                         if(users[i]) {
@@ -392,9 +446,26 @@
             } else {
                 if (level == 'BA') {
                     for(let i = index; i < users.length; i++) {
-                        if(users[i]) {
-                            usersToReturn.push(users[i]);
-                        } 
+                        if(users.length == 1) {
+                            if(users[i]) {
+                                usersToReturn.push(users[i]);
+                            }
+                        } else {
+                            //jika jumlah user lebih dari 1 maka urutan rank nya diubah jadi 2, 1, 3 dst untuk 
+                            //kebutuhan mobile
+                            if(i == 0) {
+                                if(users[i + 1]) {
+                                    usersToReturn.push(users[i + 1]);
+                                }
+                            } else if(i == 1){
+                                if(users[i - 1]) {
+                                    usersToReturn.push(users[i - 1]);
+                                }
+                            } else {
+                                usersToReturn.push(users[i]);
+                            }
+                        }
+                         
                     }
                 } else {
                     for(let i = index; i < 10; i++) {
