@@ -39,7 +39,8 @@
        //tambahan rank point user untuk Kabun dan EM 
         app.get('/api/v1.1/point/users', VerifyToken,  Controllers.v_1_1.Point.userPoints);
         app.get('/api/v1.1/point/report/:month', VerifyToken,  Controllers.v_1_1.Point.report);
-            
+        app.get('/api/v1.1/point/me', VerifyToken,  Controllers.v_1_1.Point.myPoint);
+        
         /*
         |--------------------------------------------------------------------------
         | Versi 1.0
