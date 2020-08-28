@@ -444,35 +444,27 @@
                 }
                 return usersToReturn;
             } else {
-                if (level == 'BA') {
-                    for(let i = index; i < users.length; i++) {
-                        if(users.length == 1) {
-                            if(users[i]) {
-                                usersToReturn.push(users[i]);
-                            }
-                        } else {
-                            //jika jumlah user lebih dari 1 maka urutan rank nya diubah jadi 2, 1, 3 dst untuk 
-                            //kebutuhan mobile
-                            if(i == 0) {
-                                if(users[i + 1]) {
-                                    usersToReturn.push(users[i + 1]);
-                                }
-                            } else if(i == 1){
-                                if(users[i - 1]) {
-                                    usersToReturn.push(users[i - 1]);
-                                }
-                            } else {
-                                usersToReturn.push(users[i]);
-                            }
-                        }
-                         
-                    }
-                } else {
-                    for(let i = index; i < 10; i++) {
+                for(let i = index; i < users.length; i++) {
+                    if(users.length == 1) {
                         if(users[i]) {
                             usersToReturn.push(users[i]);
-                        } 
+                        }
+                    } else {
+                        //jika jumlah user lebih dari 1 maka urutan rank nya diubah jadi 2, 1, 3 dst untuk 
+                        //kebutuhan mobile
+                        if(i == 0) {
+                            if(users[i + 1]) {
+                                usersToReturn.push(users[i + 1]);
+                            }
+                        } else if(i == 1){
+                            if(users[i - 1]) {
+                                usersToReturn.push(users[i - 1]);
+                            }
+                        } else {
+                            usersToReturn.push(users[i]);
+                        }
                     }
+                        
                 }
                 return usersToReturn; 
             }
