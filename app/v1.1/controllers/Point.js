@@ -178,7 +178,7 @@
                     
                     //dapatkan users BA, dan COMP dengan memfilter allUserPoints menggunakan LOCATION_CODE dari setiap user
                     let BAUsers = await getBAUsers(allUserPointsBA, currentUser);
-                    let COMPUsers = getCOMPUsers(allUserPointsCOMP, currentUser);
+                    let COMPUsers = await getCOMPUsers(allUserPointsCOMP, currentUser);
                     let national = groupAndSumPoint(allUserPoints);
                     //get index current user (BA, COMP, National)
                     //jika user_role bukan asisten_lapangan indexUser = 0
@@ -190,7 +190,14 @@
                         user.USERS = await getUsers(BAUsers[i].USERS, BAIndex, req, 'BA');
                         baUsers.push(user);
                     }
-                    let COMPIndex = req.auth.USER_ROLE != 'ASISTEN_LAPANGAN' ? 0 : getIndex(COMPUsers, currentUser);
+                    let compUsers = [];
+                    for(let i = 0; i < COMPUsers.length; i++) {
+                        let user = {};
+                        let COMPIndex = req.auth.USER_ROLE != 'ASISTEN_LAPANGAN' ? 0 : getIndex(COMPUsers[i].USERS, currentUser);
+                        user.COMP_NAME = COMPUsers[i].COMP_NAME;
+                        user.USERS = await getUsers(COMPUsers[i].USERS, COMPIndex, req, 'COMPANY');
+                        compUsers.push(user);
+                    }
                     let nationalIndex = req.auth.USER_ROLE != 'ASISTEN_LAPANGAN' ? 0 : getIndex(national, currentUser);
                     
                     /*jika role user asisten lapangan dapatkan 6 user BA, COMP, dan National
@@ -198,7 +205,6 @@
                      * semua rank point BA, top 10 COMPANY, dan top 10 NATIONAL
                     */
                     
-                    let compUsers = await getUsers(COMPUsers, COMPIndex, req, 'COMPANY');
                     let nationalUsers = await getUsers(national, nationalIndex, req, 'NATIONAL');
                     
                     response.push({
@@ -232,7 +238,6 @@
 
         async function getBAUsers(allUsers, currentUser) {
             let currentUserLocationCodes = currentUser.LOCATION_CODE.split(',');
-            console.log("current user location codes: " + currentUserLocationCodes);
             let baUsers = [];
             for(let i = 0; i < currentUserLocationCodes.length; i++) {
                 let endIndex = currentUserLocationCodes[i].length >= 4 ? 4 : 2;
@@ -251,32 +256,48 @@
             return baUsers;
         }
        
-        function getCOMPUsers(allUsers, currentUser, userRole) {
-            let COMPUsers = allUsers.filter(user => {
-                /*
-                * SPLIT location code kepala kebun misalny 4122V,4123X,4122R
-                * Menjadi array[4122V,4123X,4122R] karena kepala kebun memiliki banyak location code    
-                */
-                let locationCodes = currentUser.LOCATION_CODE.split(','); 
-                for(let i = 0; i < locationCodes.length; i++) {
-                    //ambil 2 digit pertama untuk di compare di level company contoh value 41
-                    let currentUserLocationCode = locationCodes[i].substring(0, 2); 
-                    // semua location code user di split misalnya [4122,4123]
-                    let splittedLocationCode = user.LOCATION_CODE.split(',')
+        async function getCOMPUsers(allUsers, currentUser) {
+            let currentLocationCodes = currentUser.LOCATION_CODE.split(',');
+            console.log(currentLocationCodes);
+            let compUsers = [];
+            for(let i = 0; i < currentLocationCodes.length; i++) {
+                //ambil 2 digit pertama untuk di compare di level company contoh value 41
+                let currentLocationCode = currentLocationCodes[i].substring(0, 2);
+                let company = await Models.Comp.findOne({COMP_CODE: new RegExp(`^${currentLocationCode}`)}).select({_id: 0, COMP_NAME: 1, COMP_CODE: 1});
+                let COMPUsers = allUsers.filter(user => {
+                    return user.LOCATION_CODE.substring(0, 2) == company.COMP_CODE;
+                })
+                let user = {};
+                user.COMP_NAME = company.COMP_NAME;
+                user.USERS = COMPUsers;
+                compUsers.push(user);
+            }
+            return compUsers;
+            // let COMPUsers = allUsers.filter(user => {
+            //     /*
+            //     * SPLIT location code kepala kebun misalny 4122V,4123X,4122R
+            //     * Menjadi array[4122V,4123X,4122R] karena kepala kebun memiliki banyak location code    
+            //     */
+            //     let locationCodes = currentUser.LOCATION_CODE.split(','); 
+            //     for(let i = 0; i < locationCodes.length; i++) {
+            //         //ambil 2 digit pertama untuk di compare di level company contoh value 41
+            //         let currentUserLocationCode = locationCodes[i].substring(0, 2); 
+            //         // semua location code user di split misalnya [4122,4123]
+            //         let splittedLocationCode = user.LOCATION_CODE.split(',')
 
-                    // filterCOMPUser(splittedLocationCode, currentUserLocationCode)
-                    for(let j = 0; j < splittedLocationCode.length; j++) {
-                        //ambil 2 digit pertama untuk di compare di level company
-                        let compCode = splittedLocationCode[j].substring(0, 2); 
-                        //misalnya 41 dan 41 maka return true
-                        if (compCode == currentUserLocationCode) { 
-                            return true
-                        }
-                    }
-                }
-            });
-            let groupedCompUser = groupAndSumPoint(COMPUsers);
-            return groupedCompUser;
+            //         // filterCOMPUser(splittedLocationCode, currentUserLocationCode)
+            //         for(let j = 0; j < splittedLocationCode.length; j++) {
+            //             //ambil 2 digit pertama untuk di compare di level company
+            //             let compCode = splittedLocationCode[j].substring(0, 2); 
+            //             //misalnya 41 dan 41 maka return true
+            //             if (compCode == currentUserLocationCode) { 
+            //                 return true
+            //             }
+            //         }
+            //     }
+            // });
+            // let groupedCompUser = groupAndSumPoint(COMPUsers);
+            // return groupedCompUser;
         }
 
         function groupAndSumPoint(users) {
