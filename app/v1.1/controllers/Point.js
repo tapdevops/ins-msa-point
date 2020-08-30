@@ -267,41 +267,19 @@
                 let COMPUsers = allUsers.filter(user => {
                     return user.LOCATION_CODE.substring(0, 2) == company.COMP_CODE;
                 })
+                let groupedCompUser = groupAndSumPoint(COMPUsers);
                 let user = {};
                 user.COMP_NAME = company.COMP_NAME;
-                user.USERS = COMPUsers;
+                user.USERS = groupedCompUser;
                 compUsers.push(user);
             }
             return compUsers;
-            // let COMPUsers = allUsers.filter(user => {
-            //     /*
-            //     * SPLIT location code kepala kebun misalny 4122V,4123X,4122R
-            //     * Menjadi array[4122V,4123X,4122R] karena kepala kebun memiliki banyak location code    
-            //     */
-            //     let locationCodes = currentUser.LOCATION_CODE.split(','); 
-            //     for(let i = 0; i < locationCodes.length; i++) {
-            //         //ambil 2 digit pertama untuk di compare di level company contoh value 41
-            //         let currentUserLocationCode = locationCodes[i].substring(0, 2); 
-            //         // semua location code user di split misalnya [4122,4123]
-            //         let splittedLocationCode = user.LOCATION_CODE.split(',')
-
-            //         // filterCOMPUser(splittedLocationCode, currentUserLocationCode)
-            //         for(let j = 0; j < splittedLocationCode.length; j++) {
-            //             //ambil 2 digit pertama untuk di compare di level company
-            //             let compCode = splittedLocationCode[j].substring(0, 2); 
-            //             //misalnya 41 dan 41 maka return true
-            //             if (compCode == currentUserLocationCode) { 
-            //                 return true
-            //             }
-            //         }
-            //     }
-            // });
-            // let groupedCompUser = groupAndSumPoint(COMPUsers);
-            // return groupedCompUser;
         }
 
         function groupAndSumPoint(users) {
             //grouping dan sum user point berdasarkan user_auth_code
+            //misalnya ketika user mempunyai point 30 di 4121 dan 20 di 4122 
+            //maka di kedua point nya di sum menjadi total 50
             var result = [];
             users.reduce(function(res, value) {
                 if (!res[value.USER_AUTH_CODE]) {
