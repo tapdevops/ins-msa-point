@@ -574,7 +574,7 @@
                 getEstateName: ['mappingPeriode', function(results, callback) {
                     let points = results.mappingPeriode;
                     async.each(points, function(point, callbackEach) {
-                        Models.Est.findOne({WERKS: point.LOCATION_CODE}).select({_id: 0, EST_NAME: 1})
+                        Models.Est.findOne({WERKS: point.LOCATION_CODE.substring(0, 4)}).select({_id: 0, EST_NAME: 1})
                         .then( data => {
                             point.BUSINESS_AREA = data.EST_NAME;
                             callbackEach();
