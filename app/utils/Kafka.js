@@ -27,56 +27,48 @@
 */
 	class Kafka {
 		async consumer () {
-            const Consumer = kafka.Consumer;
-            const Offset = kafka.Offset;
-            const Client = kafka.KafkaClient;
-            const client = new Client({ kafkaHost: config.app.kafka[config.app.env].server_host });
-            
-            let offsets = await this.getListOffset();
-            const topics = [
-                { topic: 'INS_MSA_FINDING_TR_FINDING', partition: 0, offset: offsets['INS_MSA_FINDING_TR_FINDING'] },
-                { topic: 'INS_MSA_INS_TR_BLOCK_INSPECTION_H', partition: 0, offset: offsets['INS_MSA_INS_TR_BLOCK_INSPECTION_H'] },
-                // { topic: 'INS_MSA_INS_TR_BLOCK_INSPECTION_D', partition: 0, offset: offsets['INS_MSA_INS_TR_BLOCK_INSPECTION_D'] },
-                { topic: 'INS_MSA_INS_TR_INSPECTION_GENBA', partition: 0, offset: offsets['INS_MSA_INS_TR_INSPECTION_GENBA'] },
-                { topic: 'INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H', partition: 0, offset: offsets['INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H'] }
-            ];
-            const options = {
-                autoCommit: false,
-                fetchMaxWaitMs: 1000,
-                fetchMaxBytes: 1024 * 1024,
-                fromOffset: true,
-                requestTimeout: 5000
-            };
-
-            const consumer = new Consumer(client, topics, options);
-            let offset = new Offset(client);
-            consumer.on( 'message', async ( message ) => {
-                if (message) {
-                    if (message.topic && message.value) {
-                        try {
-                            this.save(message, offset);
-                        } catch (err) {
-                            console.log(err);
+            const ConsumerGroup = kafka.ConsumerGroup;
+			var options = {
+				// connect directly to kafka broker (instantiates a KafkaClient)
+				kafkaHost: config.app.kafka[config.app.env].server_host,
+				groupId: "INS_MSA_POINT_GROUP",
+				autoCommit: true,
+				autoCommitIntervalMs: 5000,
+				sessionTimeout: 15000,
+				fetchMaxBytes: 10 * 1024 * 1024, // 10 MB
+				// An array of partition assignment protocols ordered by preference. 'roundrobin' or 'range' string for
+				// built ins (see below to pass in custom assignment protocol)
+				protocol: ['roundrobin'],
+				// Offsets to use for new groups other options could be 'earliest' or 'none'
+				// (none will emit an error if no offsets were saved) equivalent to Java client's auto.offset.reset
+				fromOffset: 'latest',
+				// how to recover from OutOfRangeOffset error (where save offset is past server retention)
+				// accepts same value as fromOffset
+				outOfRangeOffset: 'earliest'
+			};
+			let consumerGroup = new ConsumerGroup(options, ['INS_MSA_FINDING_TR_FINDING', 'INS_MSA_INS_TR_BLOCK_INSPECTION_H', 'INS_MSA_INS_TR_INSPECTION_GENBA', 'INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H']);
+			console.log(config.app.kafka[config.app.env])
+			consumerGroup.on('message', async (message) => {
+				try {
+					if (message) {
+                        if (message.topic && message.value) {
+                            try {
+                                this.save(message);
+                            } catch (err) {
+                                console.log(err);
+                            }
                         }
                     }
-                }
-			})
-			consumer.on( 'error', function( err ) {
-				console.log( 'error', err );
-            });
-            consumer.on('offsetOutOfRange', function (topic) {
-                topic.maxNum = 2;
-                offset.fetch([topic], function (err, offsets) {
-                    if (err) {
-                        return console.error(err);
-                    }
-                    var min = Math.min.apply(null, offsets[topic.topic][topic.partition]);
-                    consumer.setOffset(topic.topic, topic.partition, min);
-                });
-            });
-            
+				} catch(err) {
+					console.log(err)
+				}
+			});
+		
+			consumerGroup.on('error', function onError(error) {
+				console.error(error);
+			});
         }
-        async save(message, offsetFetch) {
+        async save(message) {
             try {
                 let now = moment(new Date()).tz('Asia/Jakarta')
                 let endOfMonth = new Date(now.year(), now.month() + 1, 0);
@@ -111,18 +103,14 @@
                             }
                         }
                     } 
-                    this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_INS_TR_BLOCK_INSPECTION_H') {
-                    this.updateOffset(topic, offsetFetch);
                     this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate, werks);
                 } else if (topic === 'INS_MSA_INS_TR_INSPECTION_GENBA') {
                     let inspection = await Models.InspectionH.findOne({BLOCK_INSPECTION_CODE: data.BINCH}).select({_id: 0, WERKS: 1});
                     let werksGenba = inspection.WERKS;
                     this.updatePoint(data.GNBUR, 1, dateNumber, inspectionDate, werksGenba);
-                    this.updateOffset(topic, offsetFetch);
                 } else if (topic === 'INS_MSA_EBCCVAL_TR_EBCC_VALIDATION_H') {
                     this.updatePoint(data.INSUR, 1, dateNumber, inspectionDate, werks);
-                    this.updateOffset(topic, offsetFetch);
                 }
             } catch (err) {
                 console.log(err);
@@ -180,46 +168,6 @@
                     });
                 }
             });
-        }
-        
-        //untuk mendapatkan semua offset dari setiap topic
-        async getListOffset() {
-            try {
-                let data = await Models.KafkaPayload.find({});
-                let mapped = data.map(item => ({ [item.TOPIC]: item.OFFSET }) );
-                let dataObject = Object.assign({}, ...mapped );
-                 
-                return dataObject;
-            } catch (err) {
-                console.log(err);
-                return null;
-            }
-        }
-        
-        //update offset dari satu topic
-        updateOffset(topic, offsetFetch) {
-            try {
-                offsetFetch.fetch([
-                    { topic: topic, partition: 0, time: -1, maxNum: 1 }
-                ], function (err, data) {
-                    let lastOffsetNumber = data[topic]['0'][0];
-                    console.log(topic);
-                    console.log(lastOffsetNumber);
-                    Models.KafkaPayload.findOneAndUpdate({
-                        TOPIC: topic
-                    }, {
-                        OFFSET: lastOffsetNumber 
-                    }, {
-                        new: true
-                    }).then(() => {
-                        // console.log('sukses update offset');
-                    }).catch(err => {
-                        console.log(err);
-                    });
-                });
-            } catch (err) {
-                 console.log(err);
-            }
         }
     }
     
